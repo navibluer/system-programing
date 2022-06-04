@@ -112,16 +112,16 @@ int main(int argc, char *argv[])
 					if (!statement["Label"].empty())
 					{
 						string data_name = statement["Label"];
+						cout << "line: " << line_number << endl;
 						if (symbol_table.count(data_name) != 0)
 						{
 							// Set Error
-							cout << "line: " << line_number << endl;
 							error_log[line_number] = "Duplicate Lable.";
 						}
 						else
 						{
 							symbol_table[data_name] = loc;
-						} 
+						}
 					}
 
 					loc += 3;
@@ -132,31 +132,31 @@ int main(int argc, char *argv[])
 		line_number++;
 	}
 
-	// // Output Symble Table
-	// cout << "\033[3;36m"
-	// 		 << "  Symbol Table: " << endl;
+	// Output Symble Table
+	cout << "\033[3;36m"
+			 << "  Symbol Table: " << endl;
 
-	// auto iter_s = symbol_table.begin();
-	// while (iter_s != symbol_table.end())
-	// {
-	// 	cout << "  [\t" << iter_s->first << ":\t"
-	// 			 << iter_s->second << "\t]\n";
-	// 	iter_s++;
-	// }
-	// cout << "\033[0m\n\n";
+	auto iter_s = symbol_table.begin();
+	while (iter_s != symbol_table.end())
+	{
+		cout << "  [\t" << iter_s->first << ":\t"
+				 << iter_s->second << "\t]\n";
+		iter_s++;
+	}
+	cout << "\033[0m\n\n";
 
-	// // Output Error log
-	// cout << "\033[3;31m"
-	// 		 << "  Error log: " << endl;
+	// Output Error log
+	cout << "\033[3;31m"
+			 << "  Error log: " << endl;
 
-	// auto iter_e = error_log.begin();
-	// while (iter_e != error_log.end())
-	// {
-	// 	cout << "  [\t" << iter_e->first << ":\t"
-	// 			 << iter_e->second << "\t]\n";
-	// 	iter_e++;
-	// }
-	// cout << "\033[0m\n\n";
+	auto iter_e = error_log.begin();
+	while (iter_e != error_log.end())
+	{
+		cout << "  [\t" << iter_e->first << ":\t"
+				 << iter_e->second << "\t]\n";
+		iter_e++;
+	}
+	cout << "\033[0m\n\n";
 
 	return 0;
 }
