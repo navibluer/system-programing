@@ -1,0 +1,95 @@
+main do
+	set is_start <- false
+	set input_line
+	set line_number <- 1
+	set loc <- 0
+	set symbol_table to map
+	set error_log to map
+
+	while (input) do
+		set input_line <- input
+		print line_number: input_line
+		// START
+		if (find "START" in input_line) do
+			set is_start <- true
+		end if
+
+		// Compile and ignore empty line
+		if (is_start and length of input_line > 1) do
+			// [ Label, Mnemoic, Operand ]
+			set statement <- compile(input_line, line_number)
+			// END Program
+			if (statement["Label"] is "END") do
+			{
+				set is_start <- false
+				print "End of program."
+				break
+			}
+			// START from this line
+			else if (statement["Mnemoic"] is "START") then
+			{
+				// Convert hex string to int, set start position
+				set loc <- statement["Operand"]
+				print "Program name is " statement["Label"] .
+				print "Start form " statement["Operand"] .
+			}
+			// RESB
+			else if (statement["Mnemoic"] is "RESB") then
+			{
+				print "RESB is pesudo instruction code."
+				set data_name <- statement["Label"]
+				set symbol_table[data_name] <- loc
+				set byte <- statement["Operand"]
+				set loc <- loc + byte
+			}
+			// RESW
+			else if (statement["Mnemoic"] is "RESW") then
+			{
+				print "RESW is pesudo instruction code."
+				set word = statement["Operand"]
+				set loc <- loc + word*3
+			}
+			// Other
+			else then
+			{
+				print "line_number: " statement["line_number"]
+				print "loc: " loc // hex number
+				// Output Addressing Mode
+				if (statement["Addressing"] not empty) then
+				{
+					print "Addressing: " statement["Addressing"]
+				}
+				// Output Label, Mnemoic, Operand
+				if ( not (
+					(statement["Label"] is empty) and
+					(statement["Mnemoic"] is empty) and
+					(statement["Operand"] is empty)
+				)) do
+				{
+					print "Label: " statement["Label"]
+					print "Mnemoic: " statement["Mnemoic"]
+					print "Operand: " statement["Operand"]
+					// Store data in Symbol Table
+
+					set loc <- loc + 3
+				}
+				end if
+			}
+			end if
+		end if
+
+		set line_number <- line_number + 1
+	end while
+
+	// Output Symble Table
+	print "Symbol Table:"
+	set iter <- begin of symbol_table
+
+	while (iter not the _end of symbol_table) do
+		print first element of symbol_table[iter]
+		print second element of symbol_table[iter]
+	end while
+
+	return
+
+end main
