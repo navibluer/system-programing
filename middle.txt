@@ -1,0 +1,45 @@
+0	COPY	START	1000     		Direct
+1000	FIRST	STL	RETADR   	14	Direct
+1003	CLOOP	JSUB	RDREC    	48	Direct
+1006		LDA	LENGTH   	0	Direct
+1009		COMP	ZERO     	28	Direct
+100c		JEQ	ENDFIL   	30	Direct
+100f		JSUB	WRREC    	48	Direct
+1012		J	CLOOP    	3c	Direct
+1015	ENDFIL	LDA	EOF      	0	Direct
+1018		STA	BUFFER   	c	Direct
+101b		LDA	THREE    	0	Direct
+101e		STA	LENGTH   	c	Direct
+1021		JSUB	WRREC    	48	Direct
+1024		LDL	RETADR   	8	Direct
+1027		RSUB	         	4c	
+102a	EOF	BYTE	C'EOF'   		Direct
+102d	THREE	WORD	3        		Direct
+1030	ZERO	WORD	0        		Direct
+1033	RETADR	RESW	1        		Direct
+1036	LENGTH	RESW	1        		Direct
+1039	BUFFER	RESB	4096     		Direct
+2039	RDREC	LDX	ZERO     	4	Direct
+203c		LDA	ZERO     	0	Direct
+203f	RLOOP	TD	INPUT    	e0	Direct
+2042		JEQ	RLOOP    	30	Direct
+2045		RD	INPUT    	d8	Direct
+2048		COMP	ZERO     	28	Direct
+204b		JEQ	EXIT     	30	Direct
+204e		STCH	BUFFER, X	54	Index
+2051		TIX	MAXLEN   	2c	Direct
+2054		JLT	RLOOP    	38	Direct
+2057	EXIT	STX	LENGTH   	10	Direct
+205a		RSUB	         	4c	
+205d	INPUT	BYTE	X'F1'    		Direct
+2060	MAXLEN	WORD	4096     		Direct
+2063	WRREC	LDX	ZERO     	4	Direct
+2066	WLOOP	TD	OUTPUT   	e0	Direct
+2069		JEQ	WLOOP    	30	Direct
+206c		LDCH	BUFFER, X	50	Index
+206f		WD	OUTPUT   	dc	Direct
+2072		TIX	LENGTH   	2c	Direct
+2075		JLT	WLOOP    	38	Direct
+2078	TEST	RSUB	         	4c	
+207b	OUTPUT	BYTE	X'05'    		Direct
+207e		END	FIRST    		Direct
