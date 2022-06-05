@@ -1,0 +1,71 @@
+[3;35m0	[0m[0;33mCOPY	[0m[0;33mSTART	[0m[0;33m1000	[0m
+[3;35m1000	[0m[0;33mFIRST	[0m[0;33mSTL	[0m[0;33mRETADR	[0m
+[3;35m1003	[0m[0;33mCLOOP	[0m[0;33mJSUB	[0m[0;33mRDREC	[0m
+[3;35m1006	[0m[0;33m	[0m[0;33mLDA	[0m[0;33mLENGTH	[0m
+[3;35m1009	[0m[0;33m	[0m[0;33mCOMP	[0m[0;33mZERO	[0m
+[3;35m100c	[0m[0;33m	[0m[0;33mJEQ	[0m[0;33mENDFIL	[0m
+[3;35m100f	[0m[0;33m	[0m[0;33mJSUB	[0m[0;33mWRREC	[0m
+[3;35m1012	[0m[0;33m	[0m[0;33mJ	[0m[0;33mCLOOP	[0m
+[3;35m1015	[0m[0;33mENDFIL	[0m[0;33mLDA	[0m[0;33mEOF	[0m
+[3;35m1018	[0m[0;33m	[0m[0;33mSTA	[0m[0;33mBUFFER	[0m
+[3;35m101b	[0m[0;33m	[0m[0;33mLDA	[0m[0;33mTHREE	[0m
+[3;35m101e	[0m[0;33m	[0m[0;33mSTA	[0m[0;33mLENGTH	[0m
+[3;35m1021	[0m[0;33m	[0m[0;33mJSUB	[0m[0;33mWRREC	[0m
+[3;35m1024	[0m[0;33m	[0m[0;33mLDL	[0m[0;33mRETADR	[0m
+[3;35m1027	[0m[0;33mRSUB	[0m[0;33m	[0m[0;33m	[0m
+[3;35m102a	[0m[0;33mEOF	[0m[0;33mBYTE	[0m[0;33mC'EOF'	[0m
+[3;35m102d	[0m[0;33mTHREE	[0m[0;33mWORD	[0m[0;33m3	[0m
+[3;35m1030	[0m[0;33mZERO	[0m[0;33mWORD	[0m[0;33m0	[0m
+[3;35m1033	[0m[0;33mRETADR	[0m[0;33mRESW	[0m[0;33m1	[0m
+[3;35m1036	[0m[0;33mLENGTH	[0m[0;33mRESW	[0m[0;33m1	[0m
+[3;35m1039	[0m[0;33mBUFFER	[0m[0;33mRESB	[0m[0;33m4096	[0m
+[3;35m2039	[0m[0;33mRDREC	[0m[0;33mLDX	[0m[0;33mZERO	[0m
+[3;35m203c	[0m[0;33m	[0m[0;33mLDA	[0m[0;33mZERO	[0m
+[3;35m203f	[0m[0;33mRLOOP	[0m[0;33mTD	[0m[0;33mINPUT	[0m
+[3;35m2042	[0m[0;33m	[0m[0;33mJEQ	[0m[0;33mRLOOP	[0m
+[3;35m2045	[0m[0;33m	[0m[0;33mRD	[0m[0;33mINPUT	[0m
+[3;35m2048	[0m[0;33m	[0m[0;33mCOMP	[0m[0;33mZERO	[0m
+[3;35m204b	[0m[0;33m	[0m[0;33mJEQ	[0m[0;33mEXIT	[0m
+[3;35m204e	[0m[0;33m	[0m[0;33mSTCH	[0m[0;33mBUFFERX	[0m
+[3;35m2051	[0m[0;33m	[0m[0;33mTIX	[0m[0;33mMAXLEN	[0m
+[3;35m2054	[0m[0;33m	[0m[0;33mJLT	[0m[0;33mRLOOP	[0m
+[3;35m2057	[0m[0;33mEXIT	[0m[0;33mSTX	[0m[0;33mLENGTH	[0m
+[3;35m205a	[0m[0;33mRSUB	[0m[0;33m	[0m[0;33m	[0m
+[3;35m205d	[0m[0;33mINPUT	[0m[0;33mBYTE	[0m[0;33mX'F1'	[0m
+[3;35m2060	[0m[0;33mMAXLEN	[0m[0;33mWORD	[0m[0;33m4096	[0m
+[3;35m2063	[0m[0;33mWRREC	[0m[0;33mLDX	[0m[0;33mZERO	[0m
+[3;35m2066	[0m[0;33mWLOOP	[0m[0;33mTD	[0m[0;33mOUTPUT	[0m
+[3;35m2069	[0m[0;33m	[0m[0;33mJEQ	[0m[0;33mWLOOP	[0m
+[3;35m206c	[0m[0;33m	[0m[0;33mLDCH	[0m[0;33mBUFFER,X	[0m
+[3;35m206f	[0m[0;33m	[0m[0;33mWD	[0m[0;33mOUTPUT	[0m
+[3;35m2072	[0m[0;33m	[0m[0;33mTIX	[0m[0;33mLENGTH	[0m
+[3;35m2075	[0m[0;33m	[0m[0;33mJLT	[0m[0;33mWLOOP	[0m
+[3;35m2078	[0m[0;33mTEST	[0m[0;33mRSUB	[0m[0;33m	[0m
+[3;35m207b	[0m[0;33mOUTPUT	[0m[0;33mBYTE	[0m[0;33mX'05'	[0m
+[3;35m207e	[0m[0;33mEND	[0m[0;33mFIRST	[0m[0;33m	[0m
+[3;36m
+Symbol Table: 
+[ BUFFER:   	1039 ]
+[ CLOOP:   	1003 ]
+[ ENDFIL:   	1015 ]
+[ EOF:   	102a ]
+[ EXIT:   	2057 ]
+[ FIRST:   	1000 ]
+[ INPUT:   	205d ]
+[ LENGTH:   	1036 ]
+[ MAXLEN:   	2060 ]
+[ OUTPUT:   	207b ]
+[ RDREC:   	2039 ]
+[ RETADR:   	1033 ]
+[ RLOOP:   	203f ]
+[ RSUB:   	1027 ]
+[ TEST:   	2078 ]
+[ THREE:   	102d ]
+[ WLOOP:   	2066 ]
+[ WRREC:   	2063 ]
+[ ZERO:   	1030 ]
+[0m
+[3;31mError log: 
+[ 42: Duplicate Lable. ]
+[0m
+

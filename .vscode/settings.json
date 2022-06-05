@@ -10,6 +10,7 @@
 		"string": "cpp",
 		"iosfwd": "cpp",
 		"__locale": "cpp",
-		"cstddef": "cpp"
+		"cstddef": "cpp",
+		"ios": "cpp"
 	}
 }

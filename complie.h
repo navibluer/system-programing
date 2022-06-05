@@ -14,8 +14,8 @@ map<string, string> compile(string input, int line_number)
 
 	for (int i = 0; i < input.length(); i++)
 	{
-		// Ignore Comment
-		if (input[i] == '.' || input[i] == '\n')
+		// Ignore Comment, \r for fucking windows
+		if (input[i] == '.' || input[i] == '\n' || input[i] == '\r')
 		{
 			if (flag == 1)
 			{
@@ -26,8 +26,8 @@ map<string, string> compile(string input, int line_number)
 			break;
 		}
 
-		// Ignore Witespace
-		else if (input[i] == ' ' || input[i] == '\t')
+		// Ignore Witespace and Comma
+		else if (input[i] == ' ' || input[i] == '\t' || input[i] == ',')
 		{
 			if (flag == 1)
 			{
@@ -67,18 +67,17 @@ map<string, string> compile(string input, int line_number)
 	if (instruction.size() > 0)
 	{
 
-			// if have no label
-		if (opcode(instruction.front()) != -1)
-		{
-			instruction.insert(instruction.begin(), " ");
-		}
+		// if have no label
+		string *front = &instruction.front();
+		if (opcode(*front) != -1 || *front == "END")
+			instruction.insert(instruction.begin(), "***");
 
 		for (int i = 0; i < instruction.size(); i++)
 		{
 			switch (i)
 			{
 			case 0:
-				if (instruction.at(i) != " ")
+				if (instruction.at(i) != "***")
 					statement["Label"] = instruction.at(i);
 				break;
 			case 1:
@@ -96,7 +95,7 @@ map<string, string> compile(string input, int line_number)
 	// if (instruction.size() > 3 && instruction.back() == "X")
 	{
 		statement["Addressing"] = "Index";
-		statement["Operand"] += "X";
+		statement["Operand"] += ", X";
 	}
 	else if (instruction.size() >= 3)
 	{
