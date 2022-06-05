@@ -11,4 +11,5 @@ RSUB
 .comment
 DATA	RESB	5	.comment
 	END	TEST
+DATA	RESB	5	.comment
 

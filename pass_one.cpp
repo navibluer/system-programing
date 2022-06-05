@@ -21,7 +21,7 @@ void store_symbol(string label)
 		if (opcode(label) != -1)
 			error_log[line_number] = "Cannot use mnemonic as label: " + label;
 		else if (symTable.count(label) != 0)
-			error_log[line_number] = "Duplicate lable: " + label;
+			error_log[line_number] = "Redefined symbol: " + label;
 		else
 			symTable[label] = loc;
 	}
@@ -29,10 +29,28 @@ void store_symbol(string label)
 
 int check_operand(string mnemoic, string operand)
 {
-	// Check Operand
 	if (operand.empty() && mnemoic != "RSUB")
 	{
 		error_log[line_number] = "Need operand.";
+		return 0;
+	}
+	else
+		return 1;
+}
+
+int check_mnemoic(string mnemoic)
+{
+	if (
+		opcode(mnemoic) == -1
+		&& mnemoic != "START"
+		&& mnemoic != "END"
+		&& mnemoic != "RESB"
+		&& mnemoic != "RESW"
+		&& mnemoic != "WORD"
+		&& mnemoic != "BYTE"
+		)
+	{
+		error_log[line_number] = "Invalid mnemoic: " + mnemoic;
 		return 0;
 	}
 	else
@@ -64,29 +82,35 @@ int read_code(string input_line)
 	}
 
 	// START from this line
-	if (mnemoic == "START")
+	if (mnemoic == "START" && check_operand(mnemoic, operand))
 		loc = stoi(operand, 0, 16); // hex string to int, set start loc
 	// RESB
-	else if (mnemoic == "RESB")
+	else if (mnemoic == "RESB" && check_operand(mnemoic, operand))
 	{
 		store_symbol(label);
 		int byte = stoi(operand);
 		loc += byte;
 	}
 	// RESW
-	else if (mnemoic == "RESW")
+	else if (mnemoic == "RESW" && check_operand(mnemoic, operand))
 	{
 		store_symbol(label);
 		int word = stoi(operand);
 		loc += word * 3;
 	}
 	// END Program
-	else if (label == "END")
+	else if (mnemoic == "END")
 	{
 		is_start = false;
 		return 0;
 	}
-	else if (!(label.empty() && mnemoic.empty() && operand.empty()))
+	else if (
+		!( label.empty()
+		&& mnemoic.empty()
+		&& operand.empty())
+		&& check_mnemoic(mnemoic)
+		&& check_operand(mnemoic, operand)
+		)
 	{
 		store_symbol(label);
 		loc += 3;
@@ -99,7 +123,6 @@ int read_code(string input_line)
 int main(int argc, char *argv[])
 {
 	string input_line;
-
 	while (cin)
 	{
 		getline(cin, input_line);
@@ -136,6 +159,7 @@ int main(int argc, char *argv[])
 				 << " " << iter->second << " ]\n";
 	}
 	cout << "\033[0m\n\n";
+
 	// End Main
 	return 0;
 }
