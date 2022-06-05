@@ -5,7 +5,7 @@
 #include "opTable.h"
 using namespace std;
 
-map<string, string> compile(string input, int line_number)
+map<string, string> compile(string input)
 {
 	int flag = 0;	 // meet char?
 	int count = 0; // word count
@@ -58,7 +58,6 @@ map<string, string> compile(string input, int line_number)
 
 	// Statement
 	map<string, string> statement;
-	statement["line_number"] = to_string(line_number);
 	statement["Label"] = "";
 	statement["Mnemoic"] = "";
 	statement["Operand"] = "";
@@ -69,7 +68,11 @@ map<string, string> compile(string input, int line_number)
 
 		// if have no label
 		string *front = &instruction.front();
-		if (opcode(*front) != -1 || *front == "END")
+		if (
+			instruction.size() <= 3
+			&& opcode(*front) != -1
+			|| *front == "END"
+			)
 			instruction.insert(instruction.begin(), "***");
 
 		for (int i = 0; i < instruction.size(); i++)

@@ -4,113 +4,114 @@
 #include <string>
 #include <map>
 // #include <vector>
-// #include "opTable.h"
 #include "complie.h"
 #include "symbolTable.h"
 using namespace std;
 
+bool is_start = false;
 int line_number = 1;
 int loc = 0;
 map<string, int> symTable;
 map<int, string> error_log;
 
-void store_symbol(map<string, string> statement)
+void store_symbol(string label)
 {
-	if (!statement["Label"].empty())
+	if (!label.empty())
 	{
-		string data_name = statement["Label"];
-		if (symTable.count(data_name) != 0)
-			error_log[line_number] = "Duplicate Lable '" + data_name + "'.";
+		if (opcode(label) != -1)
+			error_log[line_number] = "Cannot use mnemonic as label: " + label;
+		else if (symTable.count(label) != 0)
+			error_log[line_number] = "Duplicate lable: " + label;
 		else
-			symTable[data_name] = loc;
+			symTable[label] = loc;
 	}
 }
 
+int check_operand(string mnemoic, string operand)
+{
+	// Check Operand
+	if (operand.empty() && mnemoic != "RSUB")
+	{
+		error_log[line_number] = "Need operand.";
+		return 0;
+	}
+	else
+		return 1;
+}
+
+// compile and ingnore empty line
+int read_code(string input_line)
+{
+	// [ Label, Mnemoic, Operand ]
+	map<string, string> statement = compile(input_line);
+	string label = statement["Label"];
+	string mnemoic = statement["Mnemoic"];
+	string operand = statement["Operand"];
+	string addressing = statement["Addressing"];
+
+	// Output Label, Mnemoic, Operand
+	if (!(label.empty() && mnemoic.empty() && operand.empty()))
+	{
+		cout << "\033[0;35m" << hex << loc << "\t\033[0m";
+		cout << "\033[0;36m" << label << "\t\033[0m";
+		cout << "\033[0;36m" << mnemoic << "\t\033[0m";
+		cout << "\033[0;36m" << setfill(' ') << setw(10) << left
+				 << operand << "\t\033[0m";
+		// Output Addressing Mode
+		if (!statement["Addressing"].empty())
+			cout << "\033[0;32m" << statement["Addressing"] << "\033[0m";
+		cout << "\n";
+	}
+
+	// START from this line
+	if (mnemoic == "START")
+		loc = stoi(operand, 0, 16); // hex string to int, set start loc
+	// RESB
+	else if (mnemoic == "RESB")
+	{
+		store_symbol(label);
+		int byte = stoi(operand);
+		loc += byte;
+	}
+	// RESW
+	else if (mnemoic == "RESW")
+	{
+		store_symbol(label);
+		int word = stoi(operand);
+		loc += word * 3;
+	}
+	// END Program
+	else if (label == "END")
+	{
+		is_start = false;
+		return 0;
+	}
+	else if (!(label.empty() && mnemoic.empty() && operand.empty()))
+	{
+		store_symbol(label);
+		loc += 3;
+	}
+
+	return 1;
+}
+
+// Main
 int main(int argc, char *argv[])
 {
-	bool is_start = false;
 	string input_line;
 
 	while (cin)
 	{
 		getline(cin, input_line);
-
 		// START
 		if (input_line.find("START") != string::npos)
-		{
 			is_start = true;
-		}
-
-		// compile and ingnore empty line
+		// Read Line
 		if (is_start && input_line.length() > 1)
 		{
-			// [ Label, Mnemoic, Operand ]
-			map<string, string> statement = compile(input_line, line_number);
-
-			// Output Label, Mnemoic, Operand
-			if (
-				!( statement["Label"].empty()
-				&& statement["Mnemoic"].empty()
-				&& statement["Operand"].empty()
-				))
-			{
-				cout << "\033[0;35m" << hex << loc << "\t\033[0m";
-				cout << "\033[0;36m" << statement["Label"] << "\t\033[0m";
-				cout << "\033[0;36m" << statement["Mnemoic"] << "\t\033[0m";
-				cout << "\033[0;36m" << setfill(' ') << setw(10) << left
-						 								 << statement["Operand"] << "\t\033[0m";
-
-				// Output Addressing Mode
-				if (!statement["Addressing"].empty())
-				{
-					cout << "\033[0;32m" << statement["Addressing"] << "\033[0m";
-				}
-				cout << "\n";
-			}
-
-			// START from this line
-			if (statement["Mnemoic"] == "START")
-			{
-				// convert hex string to int, set start position
-				loc = stoi(statement["Operand"], 0, 16);
-			}
-			// RESB
-			else if (statement["Mnemoic"] == "RESB")
-			{
-				// Store data in Symbol Table
-				store_symbol(statement);
-
-				int byte = stoi(statement["Operand"]);
-				// cout << "byte: " <<  byte;
-				loc += byte;
-			}
-			// RESW
-			else if (statement["Mnemoic"] == "RESW")
-			{
-				// Store data in Symbol Table
-				store_symbol(statement);
-
-				int word = stoi(statement["Operand"]);
-				loc += word * 3;
-			}
-			// END Program
-			else if (statement["Label"] == "END")
-			{
-				is_start = false;
+			if (!read_code(input_line))
 				break;
-			}
-			else if (
-				!( statement["Label"].empty()
-				&& statement["Mnemoic"].empty()
-				&& statement["Operand"].empty()
-				))
-			{
-				// Store data in Symbol Table
-				store_symbol(statement);
-				loc += 3;
-			}
 		}
-
 		line_number++;
 	}
 
@@ -118,12 +119,10 @@ int main(int argc, char *argv[])
 	cout << "\033[0;37m"
 			 << "\nSymbol Table: " << endl;
 
-	auto iter_s = symTable.begin();
-	while (iter_s != symTable.end())
+	for (auto iter = symTable.begin(); iter != symTable.end(); iter++)
 	{
-		cout << "[ " << iter_s->first << ":  \t"
-				 << iter_s->second << hex << " ]\n";
-		iter_s++;
+		cout << "[ " << iter->first << ":  \t"
+				 << iter->second << hex << " ]\n";
 	}
 	cout << "\033[0m\n";
 
@@ -131,14 +130,12 @@ int main(int argc, char *argv[])
 	cout << "\033[0;31m"
 			 << "Error log: " << endl;
 
-	auto iter_e = error_log.begin();
-	while (iter_e != error_log.end())
+	for (auto iter = error_log.begin(); iter != error_log.end(); iter++)
 	{
-		cout << "[ " << to_string(iter_e->first) << ": "
-				 << iter_e->second << " ]\n";
-		iter_e++;
+		cout << "[ #" << to_string(iter->first)
+				 << " " << iter->second << " ]\n";
 	}
 	cout << "\033[0m\n\n";
-
+	// End Main
 	return 0;
 }
