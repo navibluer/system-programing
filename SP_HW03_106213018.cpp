@@ -7,30 +7,50 @@
 
 using namespace std;
 
+// void store_symbol(map<string, int> symTable, map<int, string> error_log, string data_name, int line_number, int loc)
+// {
+// 	if (symTable.count(data_name) != 0)
+// 	{
+// 		// Set Error
+// 		error_log[line_number] = "Duplicate Lable.";
+// 	}
+// 	else
+// 	{
+// 		symTable[data_name] = loc;
+// 	}
+// }
+
 int main(int argc, char *argv[])
 {
 	bool is_start = false;
 	string input_line;
 	int line_number = 1;
 	int loc = 0;
-	map<string, int> symbol_table;
+	map<string, int> symTable;
 	map<int, string> error_log;
 
 	while (cin)
 	{
 		getline(cin, input_line);
-		cout << line_number << ":";
+		cout << to_string(line_number) << ":";
 		cout << "\033[4;37m" << input_line << "\033[0m\n";
 
 		// START
 		if (input_line.find("START") != string::npos)
+		{
 			is_start = true;
+		}
 
 		// compile and ingnore empty line
 		if (is_start && input_line.length() > 1)
 		{
 			// [ Label, Mnemoic, Operand ]
-			map<string, string> statement = compile(input_line, to_string(line_number));
+			map<string, string> statement = compile(input_line, line_number);
+
+			cout << "\033[3;35m"
+						<< "  line: " << statement["line_number"]
+						<< "\tloc: " << hex << loc
+						<< "\033[0m" << endl;
 
 			// END Program
 			if (statement["Label"] == "END")
@@ -48,7 +68,7 @@ int main(int argc, char *argv[])
 				loc = stoi(statement["Operand"], 0, 16);
 				cout << "\033[3;34m"
 						 << "  Program name is " << statement["Label"] << ".\n"
-						 << "  Start form " << statement["Operand"] << "."
+						 << "  Start from " << statement["Operand"] << "."
 						 << "\033[0m\n\n";
 			}
 			// RESB
@@ -58,8 +78,15 @@ int main(int argc, char *argv[])
 						 << "  RESB is pesudo instruction code."
 						 << "\033[0m\n\n";
 
-				string data_name = statement["Label"];
-				symbol_table[data_name] = loc;
+				// Store data in Symbol Table
+				if (!statement["Label"].empty())
+				{
+					string data_name = statement["Label"];
+					if (symTable.count(data_name) != 0)
+						error_log[line_number] = "Duplicate Lable."; // Set Error
+					else
+						symTable[data_name] = loc;
+				}
 
 				int byte = stoi(statement["Operand"]);
 				// cout << "byte: " <<  byte;
@@ -72,17 +99,22 @@ int main(int argc, char *argv[])
 						 << "  RESW is pesudo instruction code."
 						 << "\033[0m\n\n";
 
+				// Store data in Symbol Table
+				if (!statement["Label"].empty())
+				{
+					string data_name = statement["Label"];
+					if (symTable.count(data_name) != 0)
+						error_log[line_number] = "Duplicate Lable."; // Set Error
+					else
+						symTable[data_name] = loc;
+				}
+
 				int word = stoi(statement["Operand"]);
 				loc += word * 3;
 			}
 			// Other
 			else
 			{
-				cout << "\033[3;35m"
-						 << "  line_number: " << statement["line_number"]
-						 << "\tloc: " << hex << loc
-						 << "\033[0m" << endl;
-
 				// Output Addressing Mode
 				if (!statement["Addressing"].empty())
 				{
@@ -112,16 +144,10 @@ int main(int argc, char *argv[])
 					if (!statement["Label"].empty())
 					{
 						string data_name = statement["Label"];
-						cout << "line: " << line_number << endl;
-						if (symbol_table.count(data_name) != 0)
-						{
-							// Set Error
-							error_log[line_number] = "Duplicate Lable.";
-						}
+						if (symTable.count(data_name) != 0)
+							error_log[line_number] = "Duplicate Lable."; // Set Error
 						else
-						{
-							symbol_table[data_name] = loc;
-						}
+							symTable[data_name] = loc;
 					}
 
 					loc += 3;
@@ -136,11 +162,11 @@ int main(int argc, char *argv[])
 	cout << "\033[3;36m"
 			 << "  Symbol Table: " << endl;
 
-	auto iter_s = symbol_table.begin();
-	while (iter_s != symbol_table.end())
+	auto iter_s = symTable.begin();
+	while (iter_s != symTable.end())
 	{
 		cout << "  [\t" << iter_s->first << ":\t"
-				 << iter_s->second << "\t]\n";
+				 << iter_s->second << hex << "\t]\n";
 		iter_s++;
 	}
 	cout << "\033[0m\n\n";
@@ -152,7 +178,7 @@ int main(int argc, char *argv[])
 	auto iter_e = error_log.begin();
 	while (iter_e != error_log.end())
 	{
-		cout << "  [\t" << iter_e->first << ":\t"
+		cout << "  [\t" << to_string(iter_e->first) << ":\t"
 				 << iter_e->second << "\t]\n";
 		iter_e++;
 	}

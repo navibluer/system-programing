@@ -5,6 +5,11 @@
 		"iostream": "cpp",
 		"memory": "cpp",
 		"utility": "cpp",
-		"iterator": "cpp"
+		"iterator": "cpp",
+		"map": "cpp",
+		"string": "cpp",
+		"iosfwd": "cpp",
+		"__locale": "cpp",
+		"cstddef": "cpp"
 	}
 }

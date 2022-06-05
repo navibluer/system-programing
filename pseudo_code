@@ -1,95 +1,165 @@
-main do
-	set is_start <- false
-	set input_line
-	set line_number <- 1
-	set loc <- 0
-	set symbol_table to map
-	set error_log to map
+Compile(input, line_number) Do
+	Set flag <- 0 // Meet Char?
+	Set count <- 0
+	Set tmp <- ""
+	Set code is a VECTOR
 
-	while (input) do
-		set input_line <- input
-		print line_number: input_line
+	For i <- 0 to LENGTH of input Do
+		// Ignore Comment
+		If input[i] is "." or "\n" Do
+		{
+			If flag is 1 Do // perious has a Char
+				PUSH tmp to code
+				tmp <- ""
+				flag <- 0
+			End If
+			Break
+		}
+		// Ignore Witespace
+		Else If input[i] is " " or "\t" then
+		{
+			If flag is 1 Do // perious has a Char
+				PUSH tmp to code
+				tmp <- ""
+				flag <- 0
+			End If
+			Continue
+		}
+		// Store Char
+		Else then
+		{
+			If flag is 0 Do // perious has no Char
+				count <- count + 1
+				flag <- 1
+				tmp <- tmp + input[i]
+		}
+		End If
+	End For
+
+	// Store Last Word
+	if flag is 1 Do
+		PUSH tmp to code;
+	End If
+
+	// Statement
+	Set statement is a MAP
+	statement["line_number"] <- line_number
+	statement["Label"] <- ""
+	statement["Mnemoic"] <- ""
+	statement["Operand"] <- ""
+	statement["Addressing"] <- ""
+
+	If size of code > 0 Do
+		// If have no label
+	End If
+
+End Compile
+
+Main Do
+	Set is_start <- false
+	Set input_line is a STRING
+	Set line_number <- 1
+	Set loc <- 0
+	Set symTable is a MAP
+	Set error_log is a MAP
+
+	While has input Do
+		Set input_line <- input
+		Print line_number: input_line
 		// START
-		if (find "START" in input_line) do
-			set is_start <- true
-		end if
+		If find "START" in input_line Do
+			Set is_start <- true
+		End If
 
 		// Compile and ignore empty line
-		if (is_start and length of input_line > 1) do
+		If is_start and length of input_line > 1 Do
 			// [ Label, Mnemoic, Operand ]
-			set statement <- compile(input_line, line_number)
+			Set statement <- Compile(input_line, line_number)
+			// Output Line NUmber and Loc
+			Print "line_number: " statement["line_number"]
+			Print "loc: " loc // hex number
 			// END Program
-			if (statement["Label"] is "END") do
+			If statement["Label"] is "END" Do
 			{
-				set is_start <- false
-				print "End of program."
-				break
+				Set is_start <- false
+				Print "End of program."
+				Break
 			}
 			// START from this line
-			else if (statement["Mnemoic"] is "START") then
+			Else If statement["Mnemoic"] is "START" then
 			{
-				// Convert hex string to int, set start position
-				set loc <- statement["Operand"]
-				print "Program name is " statement["Label"] .
-				print "Start form " statement["Operand"] .
+				// Convert hex string to int, Set start position
+				Set loc <- statement["Operand"]
+				Print "Program name is " statement["Label"] .
+				Print "Start from " statement["Operand"] .
 			}
 			// RESB
-			else if (statement["Mnemoic"] is "RESB") then
+			Else If statement["Mnemoic"] is "RESB" then
 			{
-				print "RESB is pesudo instruction code."
-				set data_name <- statement["Label"]
-				set symbol_table[data_name] <- loc
-				set byte <- statement["Operand"]
-				set loc <- loc + byte
+				Print "RESB is pesuDo instruction code."
+				Set data_name <- statement["Label"]
+				// Store data to Symbol Table If need
+				store_sym() // FIXME
+				Set byte <- statement["Operand"]
+				Set loc <- loc + byte
 			}
 			// RESW
-			else if (statement["Mnemoic"] is "RESW") then
+			Else If statement["Mnemoic"] is "RESW" then
 			{
-				print "RESW is pesudo instruction code."
-				set word = statement["Operand"]
-				set loc <- loc + word*3
+				Print "RESW is pesuDo instruction code."
+				// Store data to Symbol Table If need
+				store_sym() // FIXME
+				Set word <- statement["Operand"]
+				Set loc <- loc + word*3
 			}
 			// Other
-			else then
+			Else then
 			{
-				print "line_number: " statement["line_number"]
-				print "loc: " loc // hex number
 				// Output Addressing Mode
-				if (statement["Addressing"] not empty) then
+				If statement["Addressing"] NOT empty then
 				{
-					print "Addressing: " statement["Addressing"]
+					Print "Addressing: " statement["Addressing"]
 				}
 				// Output Label, Mnemoic, Operand
-				if ( not (
-					(statement["Label"] is empty) and
-					(statement["Mnemoic"] is empty) and
-					(statement["Operand"] is empty)
-				)) do
+				If NOT 
+					(statement["Label"] is empty and
+					statement["Mnemoic"] is empty and
+					statement["Operand"] is empty)
+				 Do
 				{
-					print "Label: " statement["Label"]
-					print "Mnemoic: " statement["Mnemoic"]
-					print "Operand: " statement["Operand"]
-					// Store data in Symbol Table
-
-					set loc <- loc + 3
+					Print "Label: " statement["Label"]
+					Print "Mnemoic: " statement["Mnemoic"]
+					Print "Operand: " statement["Operand"]
+					// Store data to Symbol Table if need
+					store_sym() // FIXME
+					Set loc <- loc + 3
 				}
-				end if
+				End If
 			}
-			end if
-		end if
+			end If
+		End If
 
-		set line_number <- line_number + 1
-	end while
+		Set line_number <- line_number + 1
+	End While
 
 	// Output Symble Table
-	print "Symbol Table:"
-	set iter <- begin of symbol_table
+	Print "Symbol Table:"
+	Set iter_s <- begin of symTable
+	While iter_s NOT the _end of symTable Do
+		Print data_name of symTable[iter_s]
+		Print loc of symTable[iter_s]
+		iter_s <- iter_s + 1
+	End While
+	
+	// Output Error Log
+	Print "Error log:"
+	Set iter_e <- begin of error_log
+	While iter_e NOT the _end of error_log Do
+		Print data_name of error_log[iter_e]
+		Print loc of error_log[iter_e]
+		iter_e <- iter_e + 1
+	End While
 
-	while (iter not the _end of symbol_table) do
-		print first element of symbol_table[iter]
-		print second element of symbol_table[iter]
-	end while
+	Return
 
-	return
-
-end main
+End Main

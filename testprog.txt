@@ -4,7 +4,7 @@
 
    
 PROG	 START F   .comment
-DATA LDCH	BUFFER, X         . comment
+TEST LDCH	BUFFER, X         . comment
   LDA DATA
 		STA	DATA, X
 	RSUB		. comment
