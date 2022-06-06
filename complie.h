@@ -25,9 +25,8 @@ map<string, string> compile(string input)
 			}
 			break;
 		}
-
-		// Ignore Witespace and Comma
-		else if (input[i] == ' ' || input[i] == '\t' || input[i] == ',')
+		// Ignore Witespace
+		else if (input[i] == ' ' || input[i] == '\t')
 		{
 			if (flag == 1)
 			{
@@ -37,14 +36,12 @@ map<string, string> compile(string input)
 			}
 			continue;
 		}
-
-		// Store Char
 		else
 		{
 			// if previous is space, count ++
 			if (flag == 0)
 				count++;
-
+			// Store Char
 			flag = 1;
 			tmp += input[i];
 		}
@@ -52,9 +49,7 @@ map<string, string> compile(string input)
 
 	// Store Last Word
 	if (flag == 1)
-	{
 		instruction.push_back(tmp);
-	}
 
 	// Statement
 	map<string, string> statement;
@@ -65,16 +60,11 @@ map<string, string> compile(string input)
 
 	if (instruction.size() > 0)
 	{
-
-		// if have no label
 		string *front = &instruction.front();
-		if (
-			instruction.size() <= 3
-			&& opcode(*front) != -1
-			|| *front == "END"
-			)
+		// No label
+		if (opcode(*front) != -1 || *front == "END")
 			instruction.insert(instruction.begin(), "***");
-
+		// Assign Label, Mnemoic, Operand
 		for (int i = 0; i < instruction.size(); i++)
 		{
 			switch (i)
@@ -92,18 +82,49 @@ map<string, string> compile(string input)
 			}
 		}
 	}
-
-	// Addressing mode
-	if (instruction.size() >= 4) // FIXME
-	// if (instruction.size() > 3 && instruction.back() == "X")
+	// Check Operand, Addressing mode
+	if (instruction.size() > 5)
 	{
-		statement["Addressing"] = "Index";
-		statement["Operand"] += ", X";
+		// BYTE content has space char
+		if (statement["Mnemoic"] == "BYTE")
+		{
+			statement["Operand"] += instruction[3]; // first '
+			// remaining content
+			for (size_t i = 4; i < instruction.size(); i++)
+			{
+				statement["Operand"] += " " + instruction.at(i);
+			}
+			statement["Addressing"] = "Direct";
+		}
+		else
+			throw "Invalid instruction length.";
 	}
-	else if (instruction.size() >= 3)
+	else if (instruction.size() > 3)
+	{
+		if (instruction[3] == "X") // Operand, X
+		{
+			statement["Addressing"] = "Index";
+			statement["Operand"] += "X";
+		}
+		else if (instruction[3] == ",X") // Operand ,X
+		{
+			statement["Addressing"] = "Index";
+			statement["Operand"] += ",X";
+		}
+		else if (instruction[3] == ",") // Operand , ?
+		{
+			statement["Addressing"] = "Index";
+			statement["Operand"] += ", " + instruction.at(4);
+		}
+		else // BYTE, WORD
+		{
+			statement["Operand"] += instruction[3];
+			statement["Addressing"] = "Direct";
+		}
+	}
+	else if (instruction.size() > 2)
 	{
 		statement["Addressing"] = "Direct";
 	}
-
 	return statement;
 }
