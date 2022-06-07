@@ -144,16 +144,13 @@ int read_code(string input)
 				{
 					if (operand.empty())
 						throw "Operand cannot be empty.";
-					else if (operand.find(',') != string::npos)
+					else if (
+							operand.find(',') != string::npos &&
+							operand.substr(operand.find(','), operand.back()) != ",X")
 					{
-						// cout << operand.substr(operand.find(','), operand.back()) << endl;
-						if (operand.substr(operand.find(','), operand.back()) != ",X")
-						{
-							throw "Invalid syntax of index addressing.";
-						}
+						throw "Invalid syntax of index addressing.";
 					}
-					else
-						loc += 3;
+					loc += 3;
 				}
 			}
 

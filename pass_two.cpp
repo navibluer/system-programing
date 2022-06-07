@@ -34,6 +34,8 @@ int main(int argc, char *argv[])
 	}
 	cout << endl;
 	
+	int program_len = instruction.size() / 6;
+	cout << "len: " << program_len << endl;
 	// End Main
 	return 0;
 }

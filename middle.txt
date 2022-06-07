@@ -1,9 +1,9 @@
 0	PROG	START	F        		Direct
 f	TEST	LDCH	BUFFER,X 	50	Index
-f	TEST	LDCH	ST       	50	Direct
-12		LDA	DATA     	00	Direct
-15		STA	DATA,X   	c0	Index
-15	EOF	BYTE	X'AAFF'  		Direct
-17		RSUB	         	4c	
-1a	DATA	RESB	5        		Direct
-1f		END	TEST     		Direct
+12	TEST	LDCH	ST       	50	Direct
+15		LDA	DATA     	00	Direct
+18		STA	DATA,X   	c0	Index
+1b	EOF	BYTE	X'AAFF'  		Direct
+1d		RSUB	         	4c	
+20	DATA	RESB	5        		Direct
+25		END	TEST     		Direct
