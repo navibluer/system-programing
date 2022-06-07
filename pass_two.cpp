@@ -2,17 +2,41 @@
 #include <iomanip>
 #include <string>
 #include <vector>
+#include <map>
 using namespace std;
+
+int line_number = 0;
+// int inst_amount;
+vector<string> instruction;
+map<string, int> symTable;
+
+// Store Symbol
+void store_symbol(string symbol, int loc)
+{
+	if (symTable.count(symbol) != 0)
+		cout << "Redefined symbol: " + symbol;
+	else
+		symTable[symbol] = loc;
+}
+
+void compile_two()
+{
+	for (size_t i = 0; i < instruction.size() - 1; i++)
+	{
+		/* code */
+	}
+	
+}
 
 // Main
 int main(int argc, char *argv[])
 {
 	string input;
-	vector<string> instruction;
-	string tmp;
 	while (cin)
 	{
 		getline(cin, input);
+		string tmp = "";
+		line_number++;
 		for (size_t i = 0; i <= input.length(); i++)
 		{
 			if (input[i] == '\t' || i == input.length())
@@ -23,9 +47,23 @@ int main(int argc, char *argv[])
 			else
 				tmp += input[i];
 		}
-		tmp = "";
+	}
+	// Compile Instruction
+	try
+	{
+		// Check Start, End
+		if (instruction.at(2) != "START")
+			throw "Program do not start from 'START'.";
+		if (instruction.at(instruction.size() - 5) != "END")
+			throw "Program do not end at 'END'.";
+		compile_two();
+	}
+	catch (const char *err_massage)
+	{
+		cout << "\033[0;31m" << err_massage << "\033[0m\n";
 	}
 
+	// Output
 	for (size_t i = 0; i < instruction.size(); i++)
 	{
 		cout << instruction.at(i) << "\t";
@@ -33,26 +71,9 @@ int main(int argc, char *argv[])
 			cout << endl;
 	}
 	cout << endl;
-	
-	int ins_amount = instruction.size() / 6;
-	cout << "total: " << ins_amount << endl;
 	// End Main
 	return 0;
 }
-
-
-// void store_symbol(string label)
-// {
-// 	if (!label.empty())
-// 	{
-// 		if (opcode(label) != -1)
-// 			error_log[line_number] = "Cannot use mnemonic as label: " + label;
-// 		else if (symTable.count(label) != 0)
-// 			error_log[line_number] = "Redefined symbol: " + label;
-// 		else
-// 			symTable[label] = loc;
-// 	}
-// }
 
 // // Output Symble Table
 // cout << "\nSymbol Table" << endl;

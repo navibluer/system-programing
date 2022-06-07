@@ -11,11 +11,6 @@ map<string, string> compile(string input)
 	int count = 0; // word count
 	string tmp = "";
 	vector<string> instruction;
-
-	// No label, Indent
-	// if (input.front() == ' ' || input.front() == '\t')
-	// 	input.insert(0, "***");
-
 	for (int i = 0; i < input.length(); i++)
 	{
 		// Ignore Comment, \r for fucking windows
@@ -128,7 +123,10 @@ map<string, string> compile(string input)
 			statement["Addressing"] = "Direct";
 		}
 	}
-	else if (instruction.size() > 2)
+	else if (
+			instruction.size() > 2 &&
+			statement["Mnemoic"] != "START" &&
+			statement["Mnemoic"] != "END")
 	{
 		statement["Addressing"] = "Direct";
 	}

@@ -1,13 +1,14 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <string.h>
 #include <map>
-#include "complie.h"
+#include "complie_one.h"
 using namespace std;
 
 int line_number = 1;
 int loc = 0;
-// compile and ingnore empty line
+// Compile and ingnore empty line
 void read_code(string input)
 {
 	try
@@ -128,7 +129,9 @@ void read_code(string input)
 			else
 			{
 				// Not in Opcode Tabel
-				if (opcode(mnemoic) == -1 && mnemoic != "WORD" && mnemoic != "END")
+				if (opcode(mnemoic) == -1 &&
+						mnemoic != "WORD" &&
+						mnemoic != "END")
 					throw "Invalid mnemoic.";
 				else
 				{
@@ -149,10 +152,12 @@ void read_code(string input)
 			if (!label.empty() && label == operand)
 				throw "Symbol cannot be same with operand.";
 			if (opcode(operand) != -1)
-				throw "Cannot use opcode to be operand.";
+				// throw "Cannot use opcode to be operand.";
+				throw string("Cannot use opcode to be operand.");
 		}
 	}
-	catch (const char *err_massage)
+	// catch (const char *err_massage)
+	catch (const string err_massage)
 	{
 		cout << "\033[0;31m"
 				 << "Line " << dec << line_number
