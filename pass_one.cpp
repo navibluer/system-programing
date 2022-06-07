@@ -1,32 +1,14 @@
 #include <iostream>
 #include <iomanip>
-#include <sstream>
 #include <string>
 #include <map>
-// #include <vector>
 #include "complie.h"
-#include "symbolTable.h"
 using namespace std;
 
 bool is_start = false;
 int line_number = 1;
 int loc = 0;
 map<string, int> symTable;
-// map<int, string> error_log;
-
-// void store_symbol(string label)
-// {
-// 	if (!label.empty())
-// 	{
-// 		if (opcode(label) != -1)
-// 			error_log[line_number] = "Cannot use mnemonic as label: " + label;
-// 		else if (symTable.count(label) != 0)
-// 			error_log[line_number] = "Redefined symbol: " + label;
-// 		else
-// 			symTable[label] = loc;
-// 	}
-// }
-
 // compile and ingnore empty line
 int read_code(string input)
 {
@@ -205,29 +187,6 @@ int main(int argc, char *argv[])
 		}
 		line_number++;
 	}
-
-	// // Output Symble Table
-	// cout << "\nSymbol Table" << endl;
-
-	// for (auto iter = symTable.begin(); iter != symTable.end(); iter++)
-	// {
-	// 	// cout << setfill(' ') << setw(10) << left
-	// 	// 		 << operand << "\t";
-	// 	cout << iter->first << ":\t"
-	// 			 << left << iter->second << "\n";
-	// }
-	// cout << "\n";
-
-	// // Output Error log
-	// cout << "Error log: " << endl;
-
-	// for (auto iter = error_log.begin(); iter != error_log.end(); iter++)
-	// {
-	// 	cout << "[ #" << dec << iter->first)
-	// 			 << " " << iter->second << " ]\n";
-	// }
-	// cout << "\n\n";
-
 	// End Main
 	return 0;
 }
