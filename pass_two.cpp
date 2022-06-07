@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include "errTable.h"
 using namespace std;
 
 int line_number = 0;
@@ -48,20 +49,6 @@ int main(int argc, char *argv[])
 				tmp += input[i];
 		}
 	}
-	// Compile Instruction
-	try
-	{
-		// Check Start, End
-		if (instruction.at(2) != "START")
-			throw "Program do not start from 'START'.";
-		if (instruction.at(instruction.size() - 5) != "END")
-			throw "Program do not end at 'END'.";
-		compile_two();
-	}
-	catch (const char *err_massage)
-	{
-		cout << "\033[0;31m" << err_massage << "\033[0m\n";
-	}
 
 	// Output
 	for (size_t i = 0; i < instruction.size(); i++)
@@ -71,6 +58,13 @@ int main(int argc, char *argv[])
 			cout << endl;
 	}
 	cout << endl;
+	// Check Start, End
+	if (instruction.at(2) != "START")
+		cout << "\033[0;31m" << err_message("START") << "\033[0m\n";
+	if (instruction.at(instruction.size() - 5) != "END")
+		cout << "\033[0;31m" << err_message("END") << "\033[0m\n";
+	// Compile Instruction
+	compile_two();
 	// End Main
 	return 0;
 }

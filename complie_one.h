@@ -3,6 +3,7 @@
 #include <vector>
 #include <map>
 #include "opTable.h"
+#include "errTable.h"
 using namespace std;
 
 map<string, string> compile(string input)
@@ -98,7 +99,7 @@ map<string, string> compile(string input)
 			statement["Addressing"] = "Direct";
 		}
 		else
-			throw "Invalid instruction syntax, possibly too long or wrong spaces.";
+			throw err_message("invalid_syntax");
 	}
 	else if (instruction.size() > 3)
 	{
@@ -115,7 +116,9 @@ map<string, string> compile(string input)
 		else if (instruction[3] == ",") // Operand , ?
 		{
 			statement["Addressing"] = "Index";
-			statement["Operand"] += "," + instruction.at(4);
+			statement["Operand"] += ",";
+			if (instruction.size() >= 5)
+				statement["Operand"] += instruction.at(4);
 		}
 		else // BYTE, WORD
 		{

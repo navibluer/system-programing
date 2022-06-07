@@ -3,15 +3,18 @@
     . d d d d .... dsdfdfd
 
    
-PROG	 STaRT   .comment
+TEST LDCH	BUFFER , X         . comment
+PROG	 STaRT  f .comment
 TEST LDCH	BUFFER , X         . comment
 TEST LDCH	st         . comment
 	LDA DaTA
-		STa	DATA		,x
-EOF	BYTE     	'aaff'
- RSUB
+		STa	DATA ,  x 
+EOF	BYTE    x 	'aa'
+ RSUB 
 .comment
-DATA	ReSB 	.comment
-	END	sta
+DATA	ReSB 5	.comment
+DATA	ReSw 3	.comment
+	END	st
+DATA	ReSw 3	.comment
 .aaa
 

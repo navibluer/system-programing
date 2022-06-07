@@ -46,7 +46,7 @@ void read_code(string input)
 				}
 				catch (invalid_argument &e)
 				{
-					throw "Invalid operand, needs a heximal integer.";
+					throw err_message("operand_START").append(operand);
 				}
 			}
 			// RESB
@@ -59,7 +59,7 @@ void read_code(string input)
 				}
 				catch (invalid_argument &e)
 				{
-					throw "Invalid operand, needs a decimal integer.";
+					throw err_message("operand_RESB").append(operand);
 				}
 			}
 			// RESW
@@ -72,57 +72,62 @@ void read_code(string input)
 				}
 				catch (invalid_argument &e)
 				{
-					throw "Invalid operand, needs a decimal integer.";
+					throw err_message("operand_RESW").append(operand);
 				}
 			}
 			// BYTE
 			else if (mnemoic == "BYTE")
 			{
-				try
+				int content_len = operand.length() - 3; // type and quotes
+				// Error Type
+				if (operand.front() != 'C' && operand.front() != 'X')
+					throw err_message("operand_BYTE_type") += operand.front();
+				else if (operand[1] != '\'' || operand.back() != '\'')
+					throw err_message("operand_BYTE_quote");
+				else if (content_len <= 0)
+					throw err_message("operand_BYTE_empty");
+				else
 				{
-					int content_len = operand.length() - 3; // type and quotes
-					if (operand.front() != 'C' && operand.front() != 'X')
+					switch (operand.front())
 					{
-						throw "Invalid operand, the content type must be 'C' or 'X'.";
-					}
-					else if (operand[1] != '\'' || operand.back() != '\'')
-					{
-						throw "Invalid operand, content needs single quotations.";
-					}
-					else if (content_len <= 0)
-					{
-						throw "Invalid operand, needs the content.";
-					}
-					else
-					{
-						switch (operand.front())
+					case 'C':
+						loc += content_len;
+						break;
+
+					case 'X':
+						if (content_len % 2 != 0)
 						{
-						case 'C':
-							loc += content_len;
-							break;
-
-						case 'X':
-							if (content_len % 2 != 0)
-								throw "Invalid operand, the content length of 'BYTE X' must be even.";
-							else
-								loc += content_len / 2;
-							break;
-
-						default:
-							break;
+							throw err_message("operand_BYTE_len")
+									.append(operand, 2, operand.length() - 3); //  X' '\n
 						}
+						else
+						{
+							try
+							{
+								stoi( //  X' '\n
+										operand.substr(2, operand.length() - 3),
+										0, 16);
+							}
+							catch (invalid_argument &e)
+							{
+								throw err_message("operand_BYTE_hex")
+										.append(operand, 2, operand.length() - 3); //  X' '\n
+							}
+
+							loc += content_len / 2;
+						}
+						break;
+
+					default:
+						break;
 					}
-				}
-				catch (invalid_argument &e)
-				{
-					throw "Invalid operand, needs a decimal integer.";
 				}
 			}
 			// RSUB
 			else if (mnemoic == "RSUB")
 			{
 				if (!operand.empty())
-					throw "'RSUB' cannot have operand.";
+					throw err_message("operand_RSUB").append(operand);
 				else
 					loc += 3;
 			}
@@ -132,36 +137,35 @@ void read_code(string input)
 				if (opcode(mnemoic) == -1 &&
 						mnemoic != "WORD" &&
 						mnemoic != "END")
-					throw "Invalid mnemoic.";
+					throw err_message("mnemoic_invalid").append(mnemoic);
 				else
 				{
 					if (operand.empty())
-						throw "Operand cannot be empty.";
+						throw err_message("operand_empty");
 					else if (
 							operand.find(',') != string::npos &&
 							operand.substr(operand.find(','), operand.back()) != ",X")
 					{
-						throw "Invalid syntax of index addressing.";
+						throw err_message("operand_addressing").append(operand);
 					}
 					loc += 3;
 				}
 			}
 			// Check Symbol Name
 			if (!label.empty() && label == mnemoic)
-				throw "Symbol cannot be same with mnemoic.";
+				throw err_message("lable_mnemoic").append(label);
 			if (!label.empty() && label == operand)
-				throw "Symbol cannot be same with operand.";
+				throw err_message("lable_mnemoic").append(label);
 			if (opcode(operand) != -1)
-				// throw "Cannot use opcode to be operand.";
-				throw string("Cannot use opcode to be operand.");
+				throw err_message("operand_opcode").append(operand);
 		}
 	}
-	// catch (const char *err_massage)
-	catch (const string err_massage)
+	// catch (const char *err_message)
+	catch (const string err_message)
 	{
 		cout << "\033[0;31m"
-				 << "Line " << dec << line_number
-				 << ": " << err_massage << "\033[0m\n";
+				 << "#" << dec << line_number
+				 << ": " << err_message << "\033[0m\n";
 	}
 }
 

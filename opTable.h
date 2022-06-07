@@ -1,4 +1,3 @@
-#include <iostream>
 #include <string>
 #include <map>
 using namespace std;
@@ -6,7 +5,6 @@ using namespace std;
 int opcode(string mnemonic)
 {
 	map<string, int> opTable;
-
 	opTable["ADD"] = 0x18;
 	opTable["ADDF"] = 0x58;
 	opTable["ADDR"] = 0x90;
@@ -64,13 +62,5 @@ int opcode(string mnemonic)
 	opTable["TIX"] = 0x2C;
 	opTable["TIXR"] = 0xB8;
 	opTable["WD"] = 0xDC;
-
-	if (opTable.count(mnemonic))
-	{
-		return opTable[mnemonic];
-	}
-	else
-	{
-		return -1;
-	}
+	return opTable.count(mnemonic) ? opTable[mnemonic] : -1;
 }
