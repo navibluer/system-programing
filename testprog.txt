@@ -14,5 +14,6 @@ EOF	BYTE  x   	'aaff'
 .comment
 DATA	ReSB 	5.comment
 	END	TEST
-DATA	RESB		.comment
+DATA	RESB	5	.comment
+.aaa
 

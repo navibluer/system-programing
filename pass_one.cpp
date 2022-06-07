@@ -5,16 +5,13 @@
 #include "complie.h"
 using namespace std;
 
-bool is_start = false;
 int line_number = 1;
 int loc = 0;
-map<string, int> symTable;
 // compile and ingnore empty line
-int read_code(string input)
+void read_code(string input)
 {
-	// [ Label, Mnemoic, Operand ]
 	try
-	{
+	{ // statement [Label, Mnemoic, Operand, Addressing]
 		map<string, string> statement = compile(input);
 		string label = statement["Label"];
 		string mnemoic = statement["Mnemoic"];
@@ -23,30 +20,23 @@ int read_code(string input)
 		// Output Label, Mnemoic, Operand
 		if (!(label.empty() && mnemoic.empty() && operand.empty()))
 		{
-			cout << hex << loc << "\t";
-			cout << label << "\t";
-			cout << mnemoic << "\t";
+			cout << hex << loc << '\t';
+			cout << label << '\t';
+			cout << mnemoic << '\t';
 			cout << setfill(' ') << setw(9) << left
-					 << operand << "\t";
+					 << operand << '\t';
 			// Output Opcode
 			if (opcode(mnemoic) != -1)
-				cout << setfill('0') << setw(2) << opcode(mnemoic) << "\t";
+				cout << setfill('0') << setw(2) << opcode(mnemoic) << '\t';
 			else
-				cout << "\t";
+				cout << '\t';
 			// Output Addressing Mode
 			if (!addressing.empty())
 				cout << addressing;
 
 			cout << "\n";
 			// Check Mnemoic, Operand and set location counter
-			// END Program ?
-			if (mnemoic == "END")
-			{
-				is_start = false;
-				return 0;
-			}
-			// START from this line
-			else if (mnemoic == "START")
+			if (mnemoic == "START") // START from this line
 			{
 				try
 				{
@@ -138,7 +128,7 @@ int read_code(string input)
 			else
 			{
 				// Not in Opcode Tabel
-				if (opcode(mnemoic) == -1 && mnemoic != "WORD")
+				if (opcode(mnemoic) == -1 && mnemoic != "WORD" && mnemoic != "END")
 					throw "Invalid mnemoic.";
 				else
 				{
@@ -153,7 +143,6 @@ int read_code(string input)
 					loc += 3;
 				}
 			}
-
 			// Check Symbol Name
 			if (!label.empty() && label == mnemoic)
 				throw "Symbol cannot be same with mnemoic.";
@@ -162,14 +151,12 @@ int read_code(string input)
 			if (opcode(operand) != -1)
 				throw "Cannot use opcode to be operand.";
 		}
-		return 1;
 	}
 	catch (const char *err_massage)
 	{
 		cout << "\033[0;31m"
 				 << "Line " << dec << line_number
 				 << ": " << err_massage << "\033[0m\n";
-		return 1;
 	}
 }
 
@@ -181,14 +168,9 @@ int main(int argc, char *argv[])
 	{
 		getline(cin, input);
 		transform(input.begin(), input.end(), input.begin(), ::toupper);
-		// START
-		if (input.find("START") != string::npos)
-			is_start = true;
-		// Read Line
-		if (is_start && input.length() > 1)
+		if (input.length() > 1)
 		{
-			if (!read_code(input))
-				break;
+			read_code(input);
 		}
 		line_number++;
 	}
