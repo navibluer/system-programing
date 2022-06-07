@@ -120,7 +120,7 @@ map<string, string> compile(string input)
 		else if (instruction[3] == ",") // Operand , ?
 		{
 			statement["Addressing"] = "Index";
-			statement["Operand"] += ", " + instruction.at(4);
+			statement["Operand"] += "," + instruction.at(4);
 		}
 		else // BYTE, WORD
 		{

@@ -38,7 +38,7 @@ int read_code(string input)
 				cout << addressing;
 
 			cout << "\n";
-			// Check Mnemoic and set location counter
+			// Check Mnemoic, Operand and set location counter
 			// END Program ?
 			if (mnemoic == "END")
 			{
@@ -144,6 +144,14 @@ int read_code(string input)
 				{
 					if (operand.empty())
 						throw "Operand cannot be empty.";
+					else if (operand.find(',') != string::npos)
+					{
+						// cout << operand.substr(operand.find(','), operand.back()) << endl;
+						if (operand.substr(operand.find(','), operand.back()) != ",X")
+						{
+							throw "Invalid syntax of index addressing.";
+						}
+					}
 					else
 						loc += 3;
 				}

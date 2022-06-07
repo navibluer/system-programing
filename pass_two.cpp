@@ -1,8 +1,42 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <vector>
 using namespace std;
 
+// Main
+int main(int argc, char *argv[])
+{
+	string input;
+	vector<string> instruction;
+	string tmp;
+	while (cin)
+	{
+		getline(cin, input);
+		for (size_t i = 0; i <= input.length(); i++)
+		{
+			if (input[i] == '\t' || i == input.length())
+			{
+				instruction.push_back(tmp);
+				tmp = "";
+			}
+			else
+				tmp += input[i];
+		}
+		tmp = "";
+	}
+
+	for (size_t i = 0; i < instruction.size(); i++)
+	{
+		cout << instruction.at(i) << "\t";
+		if (i % 6 == 5)
+			cout << endl;
+	}
+	cout << endl;
+	
+	// End Main
+	return 0;
+}
 
 
 // void store_symbol(string label)
