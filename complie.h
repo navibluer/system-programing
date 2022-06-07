@@ -12,6 +12,10 @@ map<string, string> compile(string input)
 	string tmp = "";
 	vector<string> instruction;
 
+	// No label, Indent
+	// if (input.front() == ' ' || input.front() == '\t')
+	// 	input.insert(0, "***");
+
 	for (int i = 0; i < input.length(); i++)
 	{
 		// Ignore Comment, \r for fucking windows
@@ -78,6 +82,8 @@ map<string, string> compile(string input)
 				break;
 			case 2:
 				statement["Operand"] = instruction.at(i);
+				break;
+			default:
 				break;
 			}
 		}

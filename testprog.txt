@@ -6,11 +6,11 @@
 TEST LDCH	BUFFER , X         . comment
 PROG	 STaRT  f .comment
 TEST LDCH	BUFFER , X         . comment
-TEST LDCH	sta         . comment
+TEST LDCH	st         . comment
 	LDA DaTA
 		STa	DATA		,	XX
 EOF	BYTE  x   	'aaff'
-RSUB
+ RSUB
 .comment
 DATA	ReSB 	5.comment
 	END	TEST
