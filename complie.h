@@ -85,8 +85,8 @@ map<string, string> compile(string input)
 	// Check Operand, Addressing mode
 	if (instruction.size() > 5)
 	{
-		// BYTE content has space char
-		if (statement["Mnemoic"] == "BYTE")
+		// BYTE C content has space char
+		if (statement["Mnemoic"] == "BYTE" && statement["Operand"].front() == 'C')
 		{
 			statement["Operand"] += instruction[3]; // first '
 			// remaining content
@@ -97,7 +97,7 @@ map<string, string> compile(string input)
 			statement["Addressing"] = "Direct";
 		}
 		else
-			throw "Invalid instruction length.";
+			throw "Invalid instruction syntax, possibly too long or wrong spaces.";
 	}
 	else if (instruction.size() > 3)
 	{

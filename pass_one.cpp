@@ -27,36 +27,6 @@ map<string, int> symTable;
 // 	}
 // }
 
-// int check_operand(string mnemoic, string operand)
-// {
-// 	if (operand.empty() && mnemoic != "RSUB")
-// 	{
-// 		error_log[line_number] = "Needs operand.";
-// 		return 0;
-// 	}
-// 	else
-// 		return 1;
-// }
-
-// int check_mnemoic(string mnemoic)
-// {
-// 	if (
-// 		opcode(mnemoic) == -1
-// 		&& mnemoic != "START"
-// 		&& mnemoic != "END"
-// 		&& mnemoic != "RESB"
-// 		&& mnemoic != "RESW"
-// 		&& mnemoic != "WORD"
-// 		&& mnemoic != "BYTE"
-// 		)
-// 	{
-// 		error_log[line_number] = "Invalid mnemoic: " + mnemoic;
-// 		return 0;
-// 	}
-// 	else
-// 		return 1;
-// }
-
 // compile and ingnore empty line
 int read_code(string input)
 {
@@ -86,7 +56,7 @@ int read_code(string input)
 				cout << addressing;
 
 			cout << "\n";
-
+			// Check Mnemoic and set location counter
 			// END Program ?
 			if (mnemoic == "END")
 			{
@@ -168,18 +138,6 @@ int read_code(string input)
 						default:
 							break;
 						}
-						// if (operand.front() == 'C')
-						// {
-						// 	loc += content_len;
-						// }
-						// else if (operand.front() == 'X')
-						// {
-
-						// 	if (content_len % 2 != 0)
-						// 		throw "Invalid operand, the content length of 'BYTE X' must be even.";
-						// 	else
-						// 		loc += content_len / 2;
-						// }
 					}
 				}
 				catch (invalid_argument &e)
@@ -187,10 +145,35 @@ int read_code(string input)
 					throw "Invalid operand, needs a decimal integer.";
 				}
 			}
+			// RSUB
+			else if (mnemoic == "RSUB")
+			{
+				if (!operand.empty())
+					throw "'RSUB' cannot have operand.";
+				else
+					loc += 3;
+			}
 			else
 			{
-				loc += 3;
+				// Not in Opcode Tabel
+				if (opcode(mnemoic) == -1 && mnemoic != "WORD")
+					throw "Invalid mnemoic.";
+				else
+				{
+					if (operand.empty())
+						throw "Operand cannot be empty.";
+					else
+						loc += 3;
+				}
 			}
+
+			// Check Symbol Name
+			if (!label.empty() && label == mnemoic)
+				throw "Symbol cannot be same with mnemoic.";
+			if (!label.empty() && label == operand)
+				throw "Symbol cannot be same with operand.";
+			if (opcode(operand) != -1)
+				throw "Cannot use opcode to be operand.";
 		}
 		return 1;
 	}

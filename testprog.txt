@@ -3,11 +3,13 @@
     . d d d d .... dsdfdfd
 
    
+TEST LDCH	BUFFER , X         . comment
 PROG	 STaRT  f .comment
 TEST LDCH	BUFFER , X         . comment
+TEST LDCH	sta         . comment
 	LDA DaTA
 		STa	DATA		,	XX
-EOF	BYTE  x   	'a'
+EOF	BYTE  x   	'aaff'
 RSUB
 .comment
 DATA	ReSB 	5.comment

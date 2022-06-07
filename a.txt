@@ -1,15 +1,8 @@
-[0;35m0	[0m[0;36mPROG	[0m[0;36mSTART	[0m[0;36mF         	[0m[0;32mDirect[0m
-[0;35mf	[0m[0;36mTEST	[0m[0;36mLDCH	[0m[0;36mBUFFER, X 	[0m[0;32mIndex[0m
-[0;35m12	[0m[0;36m	[0m[0;36mLDA	[0m[0;36mDATA      	[0m[0;32mDirect[0m
-[0;35m15	[0m[0;36m	[0m[0;36mSTA	[0m[0;36mDATA, X   	[0m[0;32mIndex[0m
-[0;35m18	[0m[0;36m	[0m[0;36mRSUB	[0m[0;36m          	[0m
-[0;35m1b	[0m[0;36mDATA	[0m[0;36mRESB	[0m[0;36m5         	[0m[0;32mDirect[0m
-[0;35m20	[0m[0;36m	[0m[0;36mEND	[0m[0;36mTEST      	[0m[0;32mDirect[0m
-[0;37m
-Symbol Table: 
-[ DATA:  	1b ]
-[ TEST:  	f ]
-[0m
-[0;31mError log: 
-[0m
-
+0	PROG	START	F        		Direct
+f	TEST	LDCH	BUFFER, X	50	Index
+12		LDA	DATA     	00	Direct
+15		STA	DATA, XX 	c0	Index
+18	EOF	BYTE	X'AA'    		Direct
+19		RSUB	         	4c	
+1c	DATA	RESB	5        		Direct
+21		END	TEST     		Direct
