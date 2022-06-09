@@ -2,7 +2,7 @@
 #include <fstream>
 #include <iomanip>
 #include <string>
-#include <string.h>
+#include <sstream>
 #include <map>
 #include "CompileOne.h"
 using namespace std;
@@ -47,6 +47,19 @@ void CompileOne(string input)
 		string mnemoic = statement["Mnemoic"];
 		string operand = statement["Operand"];
 		string addressing = statement["Addressing"];
+		// START from this line
+		if (mnemoic == "START")
+		{
+			try
+			{
+				// hex string to int, set start loc
+				loc = stoi(operand, 0, 16);
+			}
+			catch (invalid_argument &e)
+			{
+				throw err_message("operand_START").append(operand);
+			}
+		}
 		// Output Label, Mnemoic, Operand
 		if (!(label.empty() && mnemoic.empty() && operand.empty()))
 		{
@@ -71,20 +84,8 @@ void CompileOne(string input)
 			else if (!label.empty())
 				symTable[label] = loc;
 			// Check Mnemoic, Operand and set location counter
-			if (mnemoic == "START") // START from this line
-			{
-				try
-				{
-					// hex string to int, set start loc
-					loc = stoi(operand, 0, 16);
-				}
-				catch (invalid_argument &e)
-				{
-					throw err_message("operand_START").append(operand);
-				}
-			}
 			// RESB
-			else if (mnemoic == "RESB")
+			if (mnemoic == "RESB")
 			{
 				try
 				{
@@ -169,6 +170,7 @@ void CompileOne(string input)
 			{
 				// Not in Opcode Tabel
 				if (opcode(mnemoic) == -1 &&
+						mnemoic != "START" &&
 						mnemoic != "WORD" &&
 						mnemoic != "END")
 					throw err_message("mnemoic_invalid").append(mnemoic);
@@ -188,7 +190,8 @@ void CompileOne(string input)
 					if (mnemoic != "END")
 						m_record.push_back(loc + 1);
 					// Next
-					loc += 3;
+					if (mnemoic != "START")
+						loc += 3;
 				}
 			}
 			// Check Symbol Name
@@ -211,31 +214,89 @@ void CompileOne(string input)
 
 void CompileTwo(int instruction_len)
 {
-	cout << "\033[0;35mLength: " << instruction_len / 6 << " lines\033[0m\n\n";
+	int lines = instruction_len / 6;
+	cout << "\033[0;35m" << dec << lines << " lines\033[0m\n";
+	// Compile to Objec Program
+	string spaces = "  ";
+	int t_len = 0;
+	int t_start;
+	stringstream t_code;
 	for (size_t i = 0; i < instruction_len; i += 6)
 	{
-		line_number++;
 		// Output Middle File
+		cout << "\033[3;32m";
 		for (size_t j = i; j < i + 6; j++)
 		{
 			if (j == i + 3) // Operand
 			{
-				cout << setfill(' ') << setw(9) << left
+				cout << left << setfill(' ') << setw(9)
 						 << instruction.at(j) << "\t";
 			}
 			else
 				cout << instruction.at(j) << "\t";
 		}
-		cout << endl;
+		cout << "\033[0m\n";
 		//
 		try
 		{
-			// int loc = stoi(instruction.at(i), 0, 16);
+			int loc = stoi(instruction.at(i), 0, 16);
 			string symbol = instruction.at(i + 1);
 			string mnemoic = instruction.at(i + 2);
 			// Operand fill with whitespaces
 			string operand = instruction.at(i + 3)
 													 .substr(0, instruction.at(i + 3).find(' '));
+			int op_code = -1;
+			if (!instruction.at(i + 4).empty())
+				op_code = stoi(instruction.at(i + 4), 0, 16);
+			string addr_mode = instruction.at(i + 5);
+			
+			// Output Object Program
+			if (line_number == 1)
+			{
+				int program_len =
+						stoi(instruction.at(instruction_len - 6), 0, 16) - loc;
+				cout << "H" << spaces << setfill(' ') << setw(8) << symbol
+						 << right << setfill('0') << setw(6) << operand
+						 << spaces << program_len << endl;
+				t_start = loc;
+			}
+			else if (line_number < lines)
+			{
+				if (loc - t_start < 0x1d)
+				{
+					// FIXME: index, pseudo
+					int target = symTable[operand];
+					if (op_code != -1)
+					{
+						t_code << right << setfill('0') << setw(2) << hex << op_code
+									 << target << spaces;
+					}
+				}
+				// else
+				// 	t_code.str("");
+				// 
+				int next_loc = stoi(instruction.at(i + 6), 0, 16);
+				if (next_loc - t_start < 0x1d)
+					t_len = next_loc - t_start;
+				else
+				{
+					cout << "T" << spaces
+							 << right << setfill('0') << setw(6) << hex << t_start
+							 << spaces << t_len
+							 << spaces << t_code.str()
+							 << endl;
+					t_start = next_loc;
+					t_len = 0;
+					t_code.str("");
+				}
+			}
+			else if (line_number == lines)
+			{
+				cout << "T" << spaces
+						 << right << setfill('0') << setw(6) << hex << t_start
+						 << spaces << right << setfill('0') << setw(6) << t_len
+						 << endl;
+			}
 		}
 		catch (const string err_message)
 		{
@@ -243,6 +304,7 @@ void CompileTwo(int instruction_len)
 					 << "#" << dec << line_number
 					 << ": " << err_message << "\033[0m\n";
 		}
+		line_number++;
 	}
 }
 
