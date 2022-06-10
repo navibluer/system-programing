@@ -29,9 +29,8 @@ string err_message(string err_type)
 	errTable["END"] = "Program do not end at 'END'.";
 	// symbol
 	errTable["symbol_redefined"] = "Redefined symbol. -> ";
-	// FIXME: Not defined
-	return errTable.count(err_type) ? errTable[err_type] : "Cannot find this error type.";
+	errTable["symbol_not_defined"] = "Not defined symbol. -> ";
+	return errTable.count(err_type)
+						 ? errTable[err_type]
+						 : "Cannot find this error type.";
 }
-
-// FIXME: label use opcode?
-// FIXME: all base 16

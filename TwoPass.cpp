@@ -8,7 +8,7 @@
 using namespace std;
 
 // Pass One
-fstream pass_one;
+fstream middle_file;
 map<string, int> symTable;
 int line_number = 1;
 int loc = 0;
@@ -17,25 +17,7 @@ int has_error = 0;
 vector<string> instruction;
 vector<int> m_record;
 vector<string> obj_program;
-
-// Check Pseudo Instruction
-int is_pseudo(string mnemoic)
-{
-	if (mnemoic == "START")
-		return 1;
-	else if (mnemoic == "END")
-		return 1;
-	else if (mnemoic == "BYTE")
-		return 1;
-	else if (mnemoic == "WORD")
-		return 1;
-	else if (mnemoic == "RESB")
-		return 1;
-	else if (mnemoic == "RESW")
-		return 1;
-	else
-		return 0;
-}
+string spaces = "  ";
 
 // Compile and ingnore empty line
 void CompileOne(string input)
@@ -63,21 +45,21 @@ void CompileOne(string input)
 		// Output Label, Mnemoic, Operand
 		if (!(label.empty() && mnemoic.empty() && operand.empty()))
 		{
-			pass_one << hex << loc << '\t';
-			pass_one << label << '\t';
-			pass_one << mnemoic << '\t';
-			pass_one << setfill(' ') << setw(9) << left
-							 << operand << '\t';
+			middle_file << hex << loc << '\t';
+			middle_file << label << '\t';
+			middle_file << mnemoic << '\t';
+			middle_file << setfill(' ') << setw(9) << left
+									<< operand << '\t';
 			// Output Opcode
 			if (opcode(mnemoic) != -1)
-				pass_one << opcode(mnemoic) << '\t';
+				middle_file << opcode(mnemoic) << '\t';
 			else
-				pass_one << '\t';
+				middle_file << '\t';
 			// Output Addressing Mode
 			if (!addressing.empty())
-				pass_one << addressing;
+				middle_file << addressing;
 
-			pass_one << "\n";
+			middle_file << "\n";
 			// Store Symbol
 			if (symTable.count(label) != 0)
 				throw err_message("symbol_redefined").append(label);
@@ -187,7 +169,9 @@ void CompileOne(string input)
 						throw err_message("operand_addressing").append(operand);
 					}
 					// Check Operand
-					if (mnemoic != "END")
+					if (mnemoic != "START" &&
+							mnemoic != "END" &&
+							mnemoic != "WORD")
 						m_record.push_back(loc + 1);
 					// Next
 					if (mnemoic != "START")
@@ -206,9 +190,9 @@ void CompileOne(string input)
 	catch (const string err_message)
 	{
 		has_error = 1;
-		pass_one << "\033[0;31m"
-						 << "#" << dec << line_number
-						 << ": " << err_message << "\033[0m\n";
+		middle_file << "\033[0;31m"
+								<< "#" << dec << line_number
+								<< ": " << err_message << "\033[0m\n";
 	}
 }
 
@@ -216,97 +200,146 @@ void CompileOne(string input)
 void CompileTwo(int instruction_len)
 {
 	int total_lines = instruction_len / 6;
-	cout << "\033[0;35m" << dec << total_lines << "lines\033[0m\n";
 	int t_len = 0;
 	int t_start;
 	stringstream t_code;
-	string spaces = "  ";
 	for (size_t i = 0; i < instruction_len; i += 6)
 	{
 		// Output Middle File
-		cout << "\033[3;32m";
-		for (size_t j = i; j < i + 6; j++)
-		{
-			if (j == i + 3) // Operand
-				cout << left << setfill(' ') << setw(9)
-						 << instruction.at(j) << "\t";
-			else if (j == i + 4) // opcode
-				cout << left << setfill('0') << setw(2)
-						 << instruction.at(j) << "\t";
-			else
-				cout << instruction.at(j) << "\t";
-		}
-		cout << "\033[0m\n";
-		// Start Compiling
-		try
-		{
-			int loc = stoi(instruction.at(i), 0, 16);
-			string symbol = instruction.at(i + 1);
-			string mnemoic = instruction.at(i + 2);
-			// Operand fill with whitespaces
-			string operand = instruction.at(i + 3)
-													 .substr(0, instruction.at(i + 3).find(' '));
-			int op_code = -1;
-			if (!instruction.at(i + 4).empty())
-				op_code = stoi(instruction.at(i + 4), 0, 16);
-			string addr_mode = instruction.at(i + 5);
-			// Handle Addressing
-			int addr_code;
-			if (addr_mode == "Direct")
-				addr_code = symTable[operand];
-			else if (addr_mode == "Index")
-				addr_code = symTable[operand] + 32768; // 8000(16)
-			// FIXME: pseudo
+		// cout << "\033[3;32m";
+		// for (size_t j = i; j < i + 6; j++)
+		// {
+		// 	// Operand
+		// 	if (j == i + 3)
+		// 		cout << left << setfill(' ') << setw(9)
+		// 				 << instruction.at(j) << "\t";
+		// 	// opcode
+		// 	else if (j == i + 4 && (opcode(instruction.at(i + 2)) != -1))
+		// 		cout << right << setfill('0') << setw(2)
+		// 				 << instruction.at(j) << "\t";
+		// 	else
+		// 		cout << instruction.at(j) << "\t";
+		// }
+		// cout << "\033[0m\n";
 
-			// Output Object Program
-			if (line_number == 1)
+		// Start Compiling
+		int loc = stoi(instruction.at(i), 0, 16);
+		string symbol = instruction.at(i + 1);
+		string mnemoic = instruction.at(i + 2);
+		// Operand fill with whitespaces
+		string operand = instruction.at(i + 3)
+												 .substr(0, instruction.at(i + 3).find(' '));
+		int op_code = -1;
+		if (!instruction.at(i + 4).empty())
+			op_code = stoi(instruction.at(i + 4), 0, 16);
+		string addr_mode = instruction.at(i + 5);
+		// Check Symbol
+		if (mnemoic != "START" &&
+				mnemoic != "WORD" &&
+				mnemoic != "BYTE" &&
+				mnemoic != "RESB" &&
+				mnemoic != "RESW" &&
+				mnemoic != "RSUB" &&
+				!symTable.count(operand))
+		{
+			has_error = 1;
+			cout << "\033[0;31m"
+					 << "#" << dec << line_number << ": "
+					 << err_message("symbol_not_defined").append(operand)
+					 << "\033[0m\n";
+		}
+		// Handle Addressing
+		int addr_code = 0;
+		if (addr_mode == "Direct")
+			addr_code = symTable[operand];
+		else if (addr_mode == "Index")
+			addr_code = symTable[operand] + 32768; // 8000(16)
+		// Handle Pseudo Operand: WORD / BYTE
+		int operand_int = 0;
+		string operand_str = "";
+		if (mnemoic == "WORD")
+			operand_int = stoi(operand);
+		else if (mnemoic == "BYTE")
+		{
+			switch (operand.front())
 			{
-				int program_len =
-						stoi(instruction.at(instruction_len - 6), 0, 16) - loc;
-				cout << "H" << spaces << setfill(' ') << setw(8) << symbol
-						 << right << setfill('0') << setw(6) << operand
-						 << spaces << program_len << endl;
-				t_start = loc;
+			// X' '\n
+			case 'X':
+				operand_str = operand.substr(2, operand.length() - 3);
+				break;
+			// C' '\n
+			case 'C':
+				string characters = operand.substr(2, operand.length() - 3);
+				stringstream _characters;
+				for (size_t i = 0; i < characters.length(); i++)
+					_characters << hex << (int)characters[i];
+				operand_str = _characters.str();
+				break;
 			}
-			else if (line_number < total_lines)
+		}
+		// Output Object Program
+		if (line_number == 1) // First Line
+		{
+			int program_len =
+					stoi(instruction.at(instruction_len - 6), 0, 16) - loc;
+			cout << "H" << spaces
+					 << left << setfill(' ') << setw(6) << symbol
+					 << right << setfill('0') << setw(6) << operand
+					 << spaces << hex << program_len << endl;
+			t_start = loc;
+		}
+		else if (line_number < total_lines)
+		{
+			if (loc - t_start < 0x1d)
 			{
-				if (loc - t_start < 0x1d)
+				if (op_code != -1)
 				{
-					if (op_code != -1)
-					{
-						t_code << right << setfill('0') << setw(2) << hex << op_code
-									 << addr_code << spaces;
-					}
+					t_code << right << setfill('0') << setw(2) << hex << op_code
+								 << right << setfill('0') << setw(4) << addr_code
+								 << spaces;
 				}
-				int next_loc = stoi(instruction.at(i + 6), 0, 16);
-				if (next_loc - t_start < 0x1d)
-					t_len = next_loc - t_start;
-				else
-				{ // T Record
-					cout << "T" << spaces
-							 << right << setfill('0') << setw(6) << hex << t_start
-							 << spaces << t_len
-							 << spaces << t_code.str()
-							 << endl;
-					// Next T Record
-					t_start = next_loc;
-					t_len = 0;
-					t_code.str("");
+				else if (mnemoic == "WORD")
+				{
+					t_code << right << setfill('0') << setw(6)
+								 << operand_int << spaces;
+				}
+				else if (mnemoic == "BYTE")
+				{
+					t_code << operand_str << spaces;
 				}
 			}
-			else if (line_number == total_lines)
-			{
+			int next_loc = stoi(instruction.at(i + 6), 0, 16);
+			if (next_loc - t_start < 0x1d)
+				t_len = next_loc - t_start;
+			else
+			{ // T Record
 				cout << "T" << spaces
 						 << right << setfill('0') << setw(6) << hex << t_start
-						 << spaces << right << setfill('0') << setw(6) << t_len
+						 << spaces << t_len
+						 << spaces << t_code.str()
 						 << endl;
+				// Next T Record
+				t_start = next_loc;
+				t_len = 0;
+				t_code.str("");
 			}
 		}
-		catch (const string err_message)
+		else if (line_number == total_lines) // Final Line
 		{
-			cout << "\033[0;31m"
-					 << "#" << dec << line_number
-					 << ": " << err_message << "\033[0m\n";
+			cout << "T" << spaces
+					 << right << setfill('0') << setw(6) << hex << t_start
+					 << spaces << right << setfill('0') << setw(2) << t_len
+					 << spaces << t_code.str()
+					 << endl;
+			// Output Modification Record
+			for (const auto &loc : m_record)
+				cout << "M" << spaces
+						 << right << setfill('0') << setw(6) << loc
+						 << spaces << "04" << endl;
+			// End Program
+			cout << "E" << spaces
+					 << right << setfill('0') << setw(6) << hex << addr_code
+					 << endl;
 		}
 		line_number++;
 	}
@@ -314,7 +347,7 @@ void CompileTwo(int instruction_len)
 
 void PassOne()
 {
-	pass_one.open("middle.txt", ios::out | ios::trunc);
+	middle_file.open("middle.txt", ios::out | ios::trunc);
 	string input;
 	while (cin)
 	{
@@ -326,7 +359,7 @@ void PassOne()
 		}
 		line_number++;
 	}
-	pass_one.close();
+	middle_file.close();
 }
 
 void PassTwo()
@@ -359,9 +392,6 @@ void PassTwo()
 	instruction_len = instruction.size();
 	// Compile Instruction
 	CompileTwo(instruction_len);
-	// Output Modification Record
-	// for (const auto &loc : m_record)
-	// 	cout << "M  " << loc << "   04" << endl;
 	// Check Start, End
 	if (instruction.at(2) != "START")
 		cout << "\033[0;31m" << err_message("START") << "\033[0m\n";
@@ -376,7 +406,8 @@ int main(int argc, char *argv[])
 	PassOne();
 	// Output Symble Table
 	cout << "\033[0;36m"
-			 << "\nSymbol Table" << endl;
+			 << "\nSymbol Table:"
+			 << "\n\n";
 	for (auto iter = symTable.begin(); iter != symTable.end(); iter++)
 	{
 		cout << "[\t" << iter->first
@@ -385,7 +416,7 @@ int main(int argc, char *argv[])
 	}
 	cout << "\033[0m\n";
 	ifstream middle_file("middle.txt");
-	// Pass One Has Error, Output Middle File and Error, Exit
+	// Pass One Has Error, Output Middle File, Error, and Exit
 	if (has_error)
 	{
 		cout << middle_file.rdbuf();
@@ -393,6 +424,11 @@ int main(int argc, char *argv[])
 	}
 	// Pass Two
 	PassTwo();
+	if (has_error)
+	{
+		// cout << middle_file.rdbuf();
+		exit(1);
+	}
 	// End Main
 	exit(0);
 }

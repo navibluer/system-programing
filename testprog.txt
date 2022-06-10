@@ -7,7 +7,7 @@ PROG	 STaRT  f .comment
 TEST LDCH	BUFFER , X         . comment
 DATA	ReSB 5	.comment
 	LDA DaTA
-		STa	DATA ,  x 
+		STa	DAT ,  x 
 EOF	BYTE    x 	'aa'
  RSUB 
 .comment

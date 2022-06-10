@@ -62,5 +62,7 @@ int opcode(string mnemonic)
 	opTable["TIX"] = 0x2C;
 	opTable["TIXR"] = 0xB8;
 	opTable["WD"] = 0xDC;
-	return opTable.count(mnemonic) ? opTable[mnemonic] : -1;
+	return opTable.count(mnemonic)
+						 ? opTable[mnemonic]
+						 : -1;
 }
