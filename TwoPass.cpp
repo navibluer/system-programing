@@ -212,15 +212,15 @@ void CompileOne(string input)
 	}
 }
 
+// Compile to Objec Program
 void CompileTwo(int instruction_len)
 {
-	int lines = instruction_len / 6;
-	cout << "\033[0;35m" << dec << lines << " lines\033[0m\n";
-	// Compile to Objec Program
-	string spaces = "  ";
+	int total_lines = instruction_len / 6;
+	cout << "\033[0;35m" << dec << total_lines << "lines\033[0m\n";
 	int t_len = 0;
 	int t_start;
 	stringstream t_code;
+	string spaces = "  ";
 	for (size_t i = 0; i < instruction_len; i += 6)
 	{
 		// Output Middle File
@@ -228,15 +228,16 @@ void CompileTwo(int instruction_len)
 		for (size_t j = i; j < i + 6; j++)
 		{
 			if (j == i + 3) // Operand
-			{
 				cout << left << setfill(' ') << setw(9)
 						 << instruction.at(j) << "\t";
-			}
+			else if (j == i + 4) // opcode
+				cout << left << setfill('0') << setw(2)
+						 << instruction.at(j) << "\t";
 			else
 				cout << instruction.at(j) << "\t";
 		}
 		cout << "\033[0m\n";
-		//
+		// Start Compiling
 		try
 		{
 			int loc = stoi(instruction.at(i), 0, 16);
@@ -249,7 +250,14 @@ void CompileTwo(int instruction_len)
 			if (!instruction.at(i + 4).empty())
 				op_code = stoi(instruction.at(i + 4), 0, 16);
 			string addr_mode = instruction.at(i + 5);
-			
+			// Handle Addressing
+			int addr_code;
+			if (addr_mode == "Direct")
+				addr_code = symTable[operand];
+			else if (addr_mode == "Index")
+				addr_code = symTable[operand] + 32768; // 8000(16)
+			// FIXME: pseudo
+
 			// Output Object Program
 			if (line_number == 1)
 			{
@@ -260,37 +268,33 @@ void CompileTwo(int instruction_len)
 						 << spaces << program_len << endl;
 				t_start = loc;
 			}
-			else if (line_number < lines)
+			else if (line_number < total_lines)
 			{
 				if (loc - t_start < 0x1d)
 				{
-					// FIXME: index, pseudo
-					int target = symTable[operand];
 					if (op_code != -1)
 					{
 						t_code << right << setfill('0') << setw(2) << hex << op_code
-									 << target << spaces;
+									 << addr_code << spaces;
 					}
 				}
-				// else
-				// 	t_code.str("");
-				// 
 				int next_loc = stoi(instruction.at(i + 6), 0, 16);
 				if (next_loc - t_start < 0x1d)
 					t_len = next_loc - t_start;
 				else
-				{
+				{ // T Record
 					cout << "T" << spaces
 							 << right << setfill('0') << setw(6) << hex << t_start
 							 << spaces << t_len
 							 << spaces << t_code.str()
 							 << endl;
+					// Next T Record
 					t_start = next_loc;
 					t_len = 0;
 					t_code.str("");
 				}
 			}
-			else if (line_number == lines)
+			else if (line_number == total_lines)
 			{
 				cout << "T" << spaces
 						 << right << setfill('0') << setw(6) << hex << t_start
@@ -353,16 +357,16 @@ void PassTwo()
 		}
 	}
 	instruction_len = instruction.size();
-	// Check Start, End
-	if (instruction.at(2) != "START")
-		cout << "\033[0;31m" << err_message("START") << "\033[0m\n";
-	if (instruction.at(instruction_len - 4) != "END")
-		cout << "\033[0;31m" << err_message("END") << "\033[0m\n";
 	// Compile Instruction
 	CompileTwo(instruction_len);
 	// Output Modification Record
 	// for (const auto &loc : m_record)
 	// 	cout << "M  " << loc << "   04" << endl;
+	// Check Start, End
+	if (instruction.at(2) != "START")
+		cout << "\033[0;31m" << err_message("START") << "\033[0m\n";
+	if (instruction.at(instruction_len - 4) != "END")
+		cout << "\033[0;31m" << err_message("END") << "\033[0m\n";
 }
 
 // Main
