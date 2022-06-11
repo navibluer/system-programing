@@ -32,15 +32,14 @@
 2057	EXIT	STX	LENGTH   	10	Direct
 205a		RSUB	         	4c	
 205d	INPUT	BYTE	X'F1'    		Direct
-205e	MAXLEN	WORD	KKK      		Direct
-[0;31m#44: 'WORD' needs a decimal operand. -> KKK[0m
-205e	WRREC	LDX	ZERO     	4	Direct
-2061	WLOOP	TD	OUTPUT   	e0	Direct
-2064		JEQ	WLOOP    	30	Direct
-2067		LDCH	BUFFER,X 	50	Index
-206a		WD	OUTPUT   	dc	Direct
-206d		TIX	LENGTH   	2c	Direct
-2070		JLT	WLOOP    	38	Direct
-2073	TEST	RSUB	         	4c	
-2076	OUTPUT	BYTE	X'05'    		Direct
-2077		END	FIRST    		
+205e	MAXLEN	WORD	4096     		Direct
+2061	WRREC	LDX	ZERO     	4	Direct
+2064	WLOOP	TD	OUTPUT   	e0	Direct
+2067		JEQ	WLOOP    	30	Direct
+206a		LDCH	BUFFER,X 	50	Index
+206d		WD	OUTPUT   	dc	Direct
+2070		TIX	LENGTH   	2c	Direct
+2073		JLT	WLOOP    	38	Direct
+2076	TEST	RSUB	         	4c	
+2079	OUTPUT	BYTE	X'05'    		Direct
+207a		END	FIRST    		
