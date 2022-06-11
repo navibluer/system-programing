@@ -207,21 +207,21 @@ void CompileTwo(int instruction_len)
 	for (size_t i = 0; i < instruction_len; i += 6)
 	{
 		// Output Middle File
-		cout << "\033[3;32m";
-		for (size_t j = i; j < i + 6; j++)
-		{
-			// Operand
-			if (j == i + 3)
-				cout << left << setfill(' ') << setw(9)
-						 << instruction.at(j) << "\t";
-			// opcode
-			else if (j == i + 4 && (opcode(instruction.at(i + 2)) != -1))
-				cout << right << setfill('0') << setw(2)
-						 << instruction.at(j) << "\t";
-			else
-				cout << instruction.at(j) << "\t";
-		}
-		cout << "\033[0m\n";
+		// cout << "\033[3;32m";
+		// for (size_t j = i; j < i + 6; j++)
+		// {
+		// 	// Operand
+		// 	if (j == i + 3)
+		// 		cout << left << setfill(' ') << setw(9)
+		// 				 << instruction.at(j) << "\t";
+		// 	// opcode
+		// 	else if (j == i + 4 && (opcode(instruction.at(i + 2)) != -1))
+		// 		cout << right << setfill('0') << setw(2)
+		// 				 << instruction.at(j) << "\t";
+		// 	else
+		// 		cout << instruction.at(j) << "\t";
+		// }
+		// cout << "\033[0m\n";
 
 		// Start Compiling
 		int loc = stoi(instruction.at(i), 0, 16);
@@ -285,13 +285,10 @@ void CompileTwo(int instruction_len)
 			t_start = loc;
 			t_len = 0;
 		}
-		// else if (mnemoic == "RESW" || mnemoic == "RESB")
-		// {
-		// 	continue;
-		// }
 		// T Record Start
-		else if (line_number < total_lines-1)
+		else if (line_number < total_lines - 1)
 		{
+			string next_mnemoic = instruction.at(i + 8);
 			int next_loc = stoi(instruction.at(i + 6), 0, 16);
 			int next_next_loc = stoi(instruction.at(i + 12), 0, 16);
 			t_len = next_loc - t_start;
@@ -306,46 +303,62 @@ void CompileTwo(int instruction_len)
 			else if (mnemoic == "BYTE")
 				t_code << operand_str << spaces;
 			// T Record End
-			if (next_next_loc - t_start >= 0x1d)
+			if (next_next_loc - t_start >= 0x1d ||
+					next_mnemoic == "RESW" || next_mnemoic == "RESB")
 			{
-				cout << "T" << spaces_s
-						 << right << setfill('0') << setw(6)
-						 << hex << t_start << spaces_s
-						 << right << setfill('0') << setw(2)
-						 << t_len << spaces
-						 << t_code.str()
-						 << endl;
+				// Output T Record
+				if (mnemoic != "RESW" && mnemoic != "RESB")
+					cout << "T" << spaces_s
+							<< right << setfill('0') << setw(6)
+							<< hex << t_start << spaces_s
+							<< right << setfill('0') << setw(2)
+							<< t_len << spaces
+							<< t_code.str()
+							<< endl;
 				// Initial Next T Record
 				t_start = next_loc;
 				t_code.str("");
 			}
 		}
 		// Final Two Lines
-		else if (line_number == total_lines || line_number == total_lines - 1)
+		else if (line_number == total_lines - 1)
 		{
-			cout << "T" << spaces_s // T Record
+			int next_loc = stoi(instruction.at(i + 6), 0, 16);
+			t_len = next_loc - t_start;
+			// Append T Record
+			if (op_code != -1)
+				t_code << right << setfill('0') << setw(2) << hex << op_code
+							 << right << setfill('0') << setw(4) << addr_code
+							 << spaces;
+			else if (mnemoic == "WORD")
+				t_code << right << setfill('0') << setw(6)
+							 << operand_int << spaces;
+			else if (mnemoic == "BYTE")
+				t_code << operand_str << spaces;
+			// Output T Record
+			cout << "T" << spaces_s
 					 << right << setfill('0') << setw(6)
 					 << hex << t_start << spaces_s
 					 << right << setfill('0') << setw(2)
 					 << t_len << spaces
 					 << t_code.str()
 					 << endl;
-			// Final Line
-			if (line_number == total_lines)
+		}
+		// Final Line
+		else if (line_number == total_lines)
+		{
+			// Output M Record
+			for (const auto &loc : m_record)
 			{
-				// Output M Record
-				for (const auto &loc : m_record)
-				{
-					// cout << "M" << spaces_s
-					// 		 << right << setfill('0') << setw(6)
-					// 		 << loc << spaces_s << "04" << endl;
-				}
-				// E Record
-				cout << "E" << spaces_s
+				cout << "M" << spaces_s
 						 << right << setfill('0') << setw(6)
-						 << hex << addr_code
-						 << endl;
+						 << loc << spaces_s << "04" << endl;
 			}
+			// E Record
+			cout << "E" << spaces_s
+						<< right << setfill('0') << setw(6)
+						<< hex << addr_code
+						<< endl;
 		}
 		line_number++;
 	}
