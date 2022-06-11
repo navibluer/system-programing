@@ -17,7 +17,8 @@ int has_error = 0;
 vector<string> instruction;
 vector<int> m_record;
 vector<string> obj_program;
-string spaces = "  ";
+string spaces = "\t";
+string spaces_s = "  ";
 
 // Compile and ingnore empty line
 void CompileOne(string input)
@@ -201,26 +202,26 @@ void CompileTwo(int instruction_len)
 {
 	int total_lines = instruction_len / 6;
 	int t_len = 0;
-	int t_start;
+	int t_start = 0;
 	stringstream t_code;
 	for (size_t i = 0; i < instruction_len; i += 6)
 	{
 		// Output Middle File
-		// cout << "\033[3;32m";
-		// for (size_t j = i; j < i + 6; j++)
-		// {
-		// 	// Operand
-		// 	if (j == i + 3)
-		// 		cout << left << setfill(' ') << setw(9)
-		// 				 << instruction.at(j) << "\t";
-		// 	// opcode
-		// 	else if (j == i + 4 && (opcode(instruction.at(i + 2)) != -1))
-		// 		cout << right << setfill('0') << setw(2)
-		// 				 << instruction.at(j) << "\t";
-		// 	else
-		// 		cout << instruction.at(j) << "\t";
-		// }
-		// cout << "\033[0m\n";
+		cout << "\033[3;32m";
+		for (size_t j = i; j < i + 6; j++)
+		{
+			// Operand
+			if (j == i + 3)
+				cout << left << setfill(' ') << setw(9)
+						 << instruction.at(j) << "\t";
+			// opcode
+			else if (j == i + 4 && (opcode(instruction.at(i + 2)) != -1))
+				cout << right << setfill('0') << setw(2)
+						 << instruction.at(j) << "\t";
+			else
+				cout << instruction.at(j) << "\t";
+		}
+		cout << "\033[0m\n";
 
 		// Start Compiling
 		int loc = stoi(instruction.at(i), 0, 16);
@@ -229,17 +230,14 @@ void CompileTwo(int instruction_len)
 		// Operand fill with whitespaces
 		string operand = instruction.at(i + 3)
 												 .substr(0, instruction.at(i + 3).find(' '));
-		int op_code = -1;
-		if (!instruction.at(i + 4).empty())
-			op_code = stoi(instruction.at(i + 4), 0, 16);
+		int op_code = !instruction.at(i + 4).empty()
+											? stoi(instruction.at(i + 4), 0, 16)
+											: -1;
 		string addr_mode = instruction.at(i + 5);
 		// Check Symbol
-		if (mnemoic != "START" &&
-				mnemoic != "WORD" &&
-				mnemoic != "BYTE" &&
-				mnemoic != "RESB" &&
-				mnemoic != "RESW" &&
-				mnemoic != "RSUB" &&
+		if (mnemoic != "START" && mnemoic != "WORD" &&
+				mnemoic != "BYTE" && mnemoic != "RESB" &&
+				mnemoic != "RESW" && mnemoic != "RSUB" &&
 				!symTable.count(operand))
 		{
 			has_error = 1;
@@ -263,12 +261,10 @@ void CompileTwo(int instruction_len)
 		{
 			switch (operand.front())
 			{
-			// X' '\n
-			case 'X':
+			case 'X': // X' '\n
 				operand_str = operand.substr(2, operand.length() - 3);
 				break;
-			// C' '\n
-			case 'C':
+			case 'C': // C' '\n
 				string characters = operand.substr(2, operand.length() - 3);
 				stringstream _characters;
 				for (size_t i = 0; i < characters.length(); i++)
@@ -278,68 +274,78 @@ void CompileTwo(int instruction_len)
 			}
 		}
 		// Output Object Program
-		if (line_number == 1) // First Line
+		if (line_number == 1) // H Record
 		{
 			int program_len =
 					stoi(instruction.at(instruction_len - 6), 0, 16) - loc;
-			cout << "H" << spaces
-					 << left << setfill(' ') << setw(6) << symbol
-					 << right << setfill('0') << setw(6) << operand
-					 << spaces << hex << program_len << endl;
+			cout << "H" << spaces_s
+					 << left << setfill(' ') << setw(6) << symbol << spaces
+					 << right << setfill('0') << setw(6) << operand << spaces
+					 << hex << program_len << endl;
 			t_start = loc;
+			t_len = 0;
 		}
-		else if (line_number < total_lines)
+		// else if (mnemoic == "RESW" || mnemoic == "RESB")
+		// {
+		// 	continue;
+		// }
+		// T Record Start
+		else if (line_number < total_lines-1)
 		{
-			if (loc - t_start < 0x1d)
-			{
-				if (op_code != -1)
-				{
-					t_code << right << setfill('0') << setw(2) << hex << op_code
-								 << right << setfill('0') << setw(4) << addr_code
-								 << spaces;
-				}
-				else if (mnemoic == "WORD")
-				{
-					t_code << right << setfill('0') << setw(6)
-								 << operand_int << spaces;
-				}
-				else if (mnemoic == "BYTE")
-				{
-					t_code << operand_str << spaces;
-				}
-			}
 			int next_loc = stoi(instruction.at(i + 6), 0, 16);
-			if (next_loc - t_start < 0x1d)
-				t_len = next_loc - t_start;
-			else
-			{ // T Record
-				cout << "T" << spaces
-						 << right << setfill('0') << setw(6) << hex << t_start
-						 << spaces << t_len
-						 << spaces << t_code.str()
+			int next_next_loc = stoi(instruction.at(i + 12), 0, 16);
+			t_len = next_loc - t_start;
+			// Append T Record
+			if (op_code != -1)
+				t_code << right << setfill('0') << setw(2) << hex << op_code
+							 << right << setfill('0') << setw(4) << addr_code
+							 << spaces;
+			else if (mnemoic == "WORD")
+				t_code << right << setfill('0') << setw(6)
+							 << operand_int << spaces;
+			else if (mnemoic == "BYTE")
+				t_code << operand_str << spaces;
+			// T Record End
+			if (next_next_loc - t_start >= 0x1d)
+			{
+				cout << "T" << spaces_s
+						 << right << setfill('0') << setw(6)
+						 << hex << t_start << spaces_s
+						 << right << setfill('0') << setw(2)
+						 << t_len << spaces
+						 << t_code.str()
 						 << endl;
-				// Next T Record
+				// Initial Next T Record
 				t_start = next_loc;
-				t_len = 0;
 				t_code.str("");
 			}
 		}
-		else if (line_number == total_lines) // Final Line
+		// Final Two Lines
+		else if (line_number == total_lines || line_number == total_lines - 1)
 		{
-			cout << "T" << spaces
-					 << right << setfill('0') << setw(6) << hex << t_start
-					 << spaces << right << setfill('0') << setw(2) << t_len
-					 << spaces << t_code.str()
+			cout << "T" << spaces_s // T Record
+					 << right << setfill('0') << setw(6)
+					 << hex << t_start << spaces_s
+					 << right << setfill('0') << setw(2)
+					 << t_len << spaces
+					 << t_code.str()
 					 << endl;
-			// Output Modification Record
-			for (const auto &loc : m_record)
-				cout << "M" << spaces
-						 << right << setfill('0') << setw(6) << loc
-						 << spaces << "04" << endl;
-			// End Program
-			cout << "E" << spaces
-					 << right << setfill('0') << setw(6) << hex << addr_code
-					 << endl;
+			// Final Line
+			if (line_number == total_lines)
+			{
+				// Output M Record
+				for (const auto &loc : m_record)
+				{
+					// cout << "M" << spaces_s
+					// 		 << right << setfill('0') << setw(6)
+					// 		 << loc << spaces_s << "04" << endl;
+				}
+				// E Record
+				cout << "E" << spaces_s
+						 << right << setfill('0') << setw(6)
+						 << hex << addr_code
+						 << endl;
+			}
 		}
 		line_number++;
 	}
