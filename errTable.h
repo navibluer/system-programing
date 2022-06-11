@@ -10,6 +10,7 @@ string err_message(string err_type)
 	errTable["operand_START"] = "Program must start from a heximal location counter. -> ";
 	errTable["operand_RESB"] = "'RESB' needs a decimal operand. -> ";
 	errTable["operand_RESW"] = "'RESW' needs a decimal operand. -> ";
+	errTable["operand_WORD"] = "'WORD' needs a decimal operand. -> ";
 	errTable["operand_BYTE_type"] = "The content type of 'BYTE' must be 'C' or 'X'. -> ";
 	errTable["operand_BYTE_quote"] = "The content of 'BYTE' needs single quotations.";
 	errTable["operand_BYTE_empty"] = "The content of 'BYTE' cannot be empty.";
