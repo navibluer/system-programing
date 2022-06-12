@@ -83,6 +83,10 @@ map<string, string> compile(string input)
 				break;
 			}
 		}
+		// if (instruction.at(0) != "***")
+		// 	*label = instruction.at(0);
+		// *mnemoic = instruction.at(1);
+		// *operand = instruction.at(2);
 	}
 	// Check Operand, Addressing mode
 	if (instruction.size() > 5)
@@ -120,11 +124,13 @@ map<string, string> compile(string input)
 			if (instruction.size() >= 5)
 				*operand += instruction.at(4);
 		}
-		else // BYTE, WORD
+		else if (*mnemoic == "BYTE")
 		{
-			*operand += instruction[3];
+			*operand += instruction[3]; // BYTE X '?'
 			*addressing = "Direct";
 		}
+		else // Too Long
+			throw err_message("invalid_syntax");
 	}
 	else if (
 			instruction.size() > 2 &&

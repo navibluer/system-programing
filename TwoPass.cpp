@@ -12,7 +12,7 @@ fstream middle_file;
 map<string, int> symTable;
 int line_number = 1;
 int loc = 0;
-int has_error = 0;
+bool has_error = false;
 // Pass Two
 vector<string> instruction;
 vector<int> m_record;
@@ -58,8 +58,11 @@ void CompileOne(string input)
 				middle_file << '\t';
 			// Output Addressing Mode
 			if (!addressing.empty())
-				middle_file << addressing;
-
+				middle_file << addressing << '\t';
+			else
+				middle_file << '\t';
+			// Output Line Number
+			middle_file << dec << line_number;
 			middle_file << "\n";
 			// Store Symbol
 			if (symTable.count(label) != 0)
@@ -187,7 +190,7 @@ void CompileOne(string input)
 							mnemoic != "END" &&
 							mnemoic != "WORD")
 						m_record.push_back(loc + 1);
-					// Next
+					// Next //FIXME
 					if (mnemoic != "START")
 						loc += 3;
 				}
@@ -203,7 +206,7 @@ void CompileOne(string input)
 	}
 	catch (const string err_message)
 	{
-		has_error = 1;
+		has_error = true;
 		middle_file << "\033[0;31m"
 								<< "#" << dec << line_number
 								<< ": " << err_message << "\033[0m\n";
@@ -213,15 +216,16 @@ void CompileOne(string input)
 // Compile to Objec Program
 void CompileTwo(int instruction_len)
 {
-	int total_lines = instruction_len / 6;
+	int inst_per_line = 7;
+	int total_lines = instruction_len / inst_per_line;
 	int t_len = 0;
 	int t_start = 0;
 	stringstream t_code;
-	for (size_t i = 0; i < instruction_len; i += 6)
+	for (size_t i = 0; i < instruction_len; i += inst_per_line)
 	{
 		// Output Middle File
 		// cout << "\033[3;32m";
-		// for (size_t j = i; j < i + 6; j++)
+		// for (size_t j = i; j < i + inst_per_line; j++)
 		// {
 		// 	// Operand
 		// 	if (j == i + 3)
@@ -247,24 +251,27 @@ void CompileTwo(int instruction_len)
 											? stoi(instruction.at(i + 4), 0, 16)
 											: -1;
 		string addr_mode = instruction.at(i + 5);
+		string source_line = instruction.at(i + 6);
 		// Check Symbol
 		if (mnemoic != "START" && mnemoic != "WORD" &&
 				mnemoic != "BYTE" && mnemoic != "RESB" &&
 				mnemoic != "RESW" && mnemoic != "RSUB" &&
 				!symTable.count(operand))
 		{
-			has_error = 1;
 			cout << "\033[0;31m"
-					 << "#" << dec << line_number << ": "
+					 << "#" << dec << source_line << ": "
 					 << err_message("symbol_not_defined").append(operand)
 					 << "\033[0m\n";
+			has_error = true;
+			return;
 		}
 		// Handle Addressing
 		int addr_code = 0;
-		if (addr_mode == "Direct")
-			addr_code = symTable[operand];
-		else if (addr_mode == "Index")
+		if (addr_mode == "Index")
 			addr_code = symTable[operand] + 32768; // 8000(16)
+		// if (addr_mode == "Direct")
+		else // End
+			addr_code = symTable[operand];
 		// Handle Pseudo Operand: WORD / BYTE
 		int operand_int = 0;
 		string operand_str = "";
@@ -290,20 +297,21 @@ void CompileTwo(int instruction_len)
 		if (line_number == 1) // H Record
 		{
 			int program_len =
-					stoi(instruction.at(instruction_len - 6), 0, 16) - loc;
+					stoi(instruction.at(instruction_len - inst_per_line), 0, 16) - loc;
 			cout << "H" << spaces_s
 					 << left << setfill(' ') << setw(6) << symbol << spaces
 					 << right << setfill('0') << setw(6) << operand << spaces
-					 << hex << program_len << endl;
+					 << right << setfill('0') << setw(6) << hex << program_len
+					 << endl;
 			t_start = loc;
 			t_len = 0;
 		}
 		// T Record Start
 		else if (line_number < total_lines - 1)
 		{
-			string next_mnemoic = instruction.at(i + 8);
-			int next_loc = stoi(instruction.at(i + 6), 0, 16);
-			int next_next_loc = stoi(instruction.at(i + 12), 0, 16);
+			string next_mnemoic = instruction.at(i + inst_per_line + 2);
+			int next_loc = stoi(instruction.at(i + inst_per_line), 0, 16);
+			int next_next_loc = stoi(instruction.at(i + inst_per_line*2), 0, 16);
 			t_len = next_loc - t_start;
 			// Append T Record
 			if (op_code != -1)
@@ -316,18 +324,18 @@ void CompileTwo(int instruction_len)
 			else if (mnemoic == "BYTE")
 				t_code << operand_str << spaces;
 			// T Record End
-			if (next_next_loc - t_start >= 0x1d ||
+			if (next_next_loc - t_start > 0x1e ||
 					next_mnemoic == "RESW" || next_mnemoic == "RESB")
 			{
 				// Output T Record
 				if (mnemoic != "RESW" && mnemoic != "RESB")
 					cout << "T" << spaces_s
-							<< right << setfill('0') << setw(6)
-							<< hex << t_start << spaces_s
-							<< right << setfill('0') << setw(2)
-							<< t_len << spaces
-							<< t_code.str()
-							<< endl;
+							 << right << setfill('0') << setw(6)
+							 << hex << t_start << spaces_s
+							 << right << setfill('0') << setw(2)
+							 << t_len << spaces
+							 << t_code.str()
+							 << endl;
 				// Initial Next T Record
 				t_start = next_loc;
 				t_code.str("");
@@ -336,7 +344,7 @@ void CompileTwo(int instruction_len)
 		// Final Two Lines
 		else if (line_number == total_lines - 1)
 		{
-			int next_loc = stoi(instruction.at(i + 6), 0, 16);
+			int next_loc = stoi(instruction.at(i + inst_per_line), 0, 16);
 			t_len = next_loc - t_start;
 			// Append T Record
 			if (op_code != -1)
@@ -369,9 +377,9 @@ void CompileTwo(int instruction_len)
 			}
 			// E Record
 			cout << "E" << spaces_s
-						<< right << setfill('0') << setw(6)
-						<< hex << addr_code
-						<< endl;
+					 << right << setfill('0') << setw(6)
+					 << hex << addr_code
+					 << endl;
 		}
 		line_number++;
 	}
@@ -422,13 +430,21 @@ void PassTwo()
 		}
 	}
 	instruction_len = instruction.size();
-	// Compile Instruction
-	CompileTwo(instruction_len);
 	// Check Start, End
 	if (instruction.at(2) != "START")
+	{
 		cout << "\033[0;31m" << err_message("START") << "\033[0m\n";
-	if (instruction.at(instruction_len - 4) != "END")
+		has_error = true;
+		return;
+	}
+	if (instruction.at(instruction_len - 5) != "END")
+	{
 		cout << "\033[0;31m" << err_message("END") << "\033[0m\n";
+		has_error = true;
+		return;
+	}
+	// Compile Instruction
+	CompileTwo(instruction_len);
 }
 
 // Main
@@ -454,13 +470,12 @@ int main(int argc, char *argv[])
 		cout << middle_file.rdbuf();
 		exit(1);
 	}
-		// cout << middle_file.rdbuf();
+	// cout << middle_file.rdbuf();
 	// Pass Two
 	PassTwo();
 	if (has_error)
-	{
-		// cout << middle_file.rdbuf();
-		exit(1);
+	{ // cout << middle_file.rdbuf();
+		return (1);
 	}
 	// End Main
 	exit(0);

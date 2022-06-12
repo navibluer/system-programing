@@ -1,15 +1,26 @@
-Compile(input, line_number) Do
+// Pass One
+Set symTable is a map <string, int>;
+Set line_number <- 1;
+Set loc <- 0;
+Set has_error <- false;
+// Pass Two
+Set instruction is a string vector;
+Set m_record is a int vector;
+Set obj_program is a string vector;
+
+// Split and Handle Addressing Mode
+compile(input, line_number) Do
 	Set flag <- 0 // Meet Char?
 	Set count <- 0
 	Set tmp <- ""
-	Set code is a VECTOR
+	Set instruction is a string vector
 
-	For i <- 0 to LENGTH of input Do
-		// Ignore Comment
-		If input[i] is "." or "\n" Do
+	For i: 0 to length of input Do
+		// Ignore Comment and Line Break
+		If input[i] is "." or "\n" or "\r" Do
 		{
 			If flag is 1 Do // perious has a Char
-				PUSH tmp to code
+				push tmp to instruction
 				tmp <- ""
 				flag <- 0
 			End If
@@ -19,7 +30,7 @@ Compile(input, line_number) Do
 		Else If input[i] is " " or "\t" then
 		{
 			If flag is 1 Do // perious has a Char
-				PUSH tmp to code
+				push tmp to instruction
 				tmp <- ""
 				flag <- 0
 			End If
@@ -30,38 +41,73 @@ Compile(input, line_number) Do
 		{
 			If flag is 0 Do // perious has no Char
 				count <- count + 1
-				flag <- 1
-				tmp <- tmp + input[i]
+			end If
+
+			flag <- 1
+			tmp <- tmp + input[i]
 		}
 		End If
 	End For
 
 	// Store Last Word
 	if flag is 1 Do
-		PUSH tmp to code;
+		push tmp to instruction;
 	End If
 
 	// Statement
-	Set statement is a MAP
-	statement["line_number"] <- line_number
-	statement["Label"] <- ""
-	statement["Mnemoic"] <- ""
-	statement["Operand"] <- ""
-	statement["Addressing"] <- ""
+	Set statement is a map <string, string>
+	Set label is a pointer point to statement["Label"]
+	Set mnemoic is a pointer point to statement["Mnemoic"]
+	Set operand is a pointer point to statement["Operand"]
+	Set addressing is a pointer point to statement["Addressing"]
 
-	If size of code > 0 Do
-		// If have no label
+	If instruction size > 0 Do
+		// No label
+		If (first of instruction is not "END" or cannot find opcode) Do
+			Insert "***" to the head of instruction
+		End If
+		// Assign Label, Mnemoic, Operand
+		For i: 0 to instruction size Do
+			Switch(i) Do
+				case 0:
+					If instruction[i] is not "***"
+						Set label <- instruction[i]
+					break
+				case 1:
+					Set mnemoic <- instruction[i]
+					break
+				case 2:
+					Set operand <- instruction[i]
+					break
+				default:
+					break
+			End Switch
+		End For
 	End If
 
+	// Check Operand, Addressing mode
+	If instruction size > 5 Do
+		// BYTE C content has space char
+		If (mnemoic is "BYTE" and first character of operand is "C") Do
+			Set operand <- operand + instruction[3] // first ' 
+			// remaining content
+			operand append remaining content and whitespaces
+			Set addressing <- "Direct"
+		Else then
+			Throw error message
+		End If
+	Else If instruction size > 3
+		
+	End If
 End Compile
 
-Main Do
+CompileOne() Do
 	Set is_start <- false
 	Set input_line is a STRING
 	Set line_number <- 1
 	Set loc <- 0
-	Set symTable is a MAP
-	Set error_log is a MAP
+	Set symTable is a map
+	Set error_log is a map
 
 	While has input Do
 		Set input_line <- input
@@ -121,7 +167,7 @@ Main Do
 					Print "Addressing: " statement["Addressing"]
 				}
 				// Output Label, Mnemoic, Operand
-				If NOT 
+				If NOT
 					(statement["Label"] is empty and
 					statement["Mnemoic"] is empty and
 					statement["Operand"] is empty)
@@ -142,15 +188,8 @@ Main Do
 		Set line_number <- line_number + 1
 	End While
 
-	// Output Symble Table
-	Print "Symbol Table:"
-	Set iter_s <- begin of symTable
-	While iter_s NOT the _end of symTable Do
-		Print data_name of symTable[iter_s]
-		Print loc of symTable[iter_s]
-		iter_s <- iter_s + 1
-	End While
-	
+
+
 	// Output Error Log
 	Print "Error log:"
 	Set iter_e <- begin of error_log
@@ -162,4 +201,63 @@ Main Do
 
 	Return
 
+End CompileOne
+
+PassOne() Do
+	Open middle_file
+	string line
+
+	While (Input) Do
+		getline(Input, line)
+		transform line to uppercase
+
+		If (length of line  > 1) Do
+			CompileOne(line)
+		End If
+
+		Set line_number <- line_number + 1
+	End While
+
+	Close middle_file
+End PassOne
+
+PassTwo() Do
+	open middle_file
+	string input
+	int instruction_len;
+	line_number <- 1;
+
+	Read Middle File, split with '\t'
+
+	Set instruction_len <- instruction size
+	CompileTwo(instruction_len)
+
+	If (instruction[2] is not "START") Do
+		Print err_message: "Not starting at START."
+		End If
+		
+		If (instruction[instruction_len - 4] is not "START") Do
+		Print err_message: "Not ending at END."
+	End If
+End PassTwo
+
+Main() Do
+	PassOne()
+	Output Symbol Table
+
+	open middle_file
+
+	If has_error Do
+		Output middle_file
+		Return 1
+	End If
+
+	PassTwo()
+	If has_error Do
+		Return 1
+	End If
+
+	Return 0
 End Main
+
+// Middle File: source code line number
