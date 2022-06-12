@@ -65,28 +65,11 @@ map<string, string> compile(string input)
 		if (opcode(*front) != -1 || *front == "END")
 			instruction.insert(instruction.begin(), "***");
 		// Assign Label, Mnemoic, Operand
-		for (int i = 0; i < instruction.size(); i++)
-		{
-			switch (i)
-			{
-			case 0:
-				if (instruction.at(i) != "***")
-					*label = instruction.at(i);
-				break;
-			case 1:
-				*mnemoic = instruction.at(i);
-				break;
-			case 2:
-				*operand = instruction.at(i);
-				break;
-			default:
-				break;
-			}
-		}
-		// if (instruction.at(0) != "***")
-		// 	*label = instruction.at(0);
-		// *mnemoic = instruction.at(1);
-		// *operand = instruction.at(2);
+		if (instruction.at(0) != "***")
+			*label = instruction.at(0);
+		*mnemoic = instruction.at(1);
+		if (instruction.size() > 2)
+			*operand = instruction.at(2);
 	}
 	// Check Operand, Addressing mode
 	if (instruction.size() > 5)
@@ -94,15 +77,15 @@ map<string, string> compile(string input)
 		// BYTE C content has space char
 		if (*mnemoic == "BYTE" && statement["Operand"].front() == 'C')
 		{
-			*operand += instruction[3]; // first '
-			// remaining content
+			*operand += instruction[3]; // C '  XXX   ' 
+			// Remaining content
 			for (size_t i = 4; i < instruction.size(); i++)
 			{
 				*operand += " " + instruction.at(i);
 			}
 			*addressing = "Direct";
 		}
-		else
+		else // Too Long
 			throw err_message("invalid_syntax");
 	}
 	else if (instruction.size() > 3)

@@ -4,7 +4,7 @@
 #include <string>
 #include <sstream>
 #include <map>
-#include "CompileOne.h"
+#include "compile.h"
 using namespace std;
 
 // Pass One
@@ -20,7 +20,7 @@ vector<string> obj_program;
 string spaces = "\t";
 string spaces_s = "  ";
 
-// Compile and ingnore empty line
+// Compile statement and ingnore empty line
 void CompileOne(string input)
 {
 	try
@@ -167,7 +167,7 @@ void CompileOne(string input)
 			}
 			else
 			{
-				// Not in Opcode Tabel
+				// Invalid Mnemoic
 				if (opcode(mnemoic) == -1 &&
 						mnemoic != "START" &&
 						mnemoic != "WORD" &&
@@ -175,7 +175,7 @@ void CompileOne(string input)
 					throw err_message("mnemoic_invalid").append(mnemoic);
 				else
 				{
-					// Has no Operand
+					// Invalid Operand
 					if (operand.empty())
 						throw err_message("operand_empty");
 					// Index Addressing Syntax Error
@@ -185,12 +185,12 @@ void CompileOne(string input)
 					{
 						throw err_message("operand_addressing").append(operand);
 					}
-					// Check Operand
+					// M Record
 					if (mnemoic != "START" &&
 							mnemoic != "END" &&
 							mnemoic != "WORD")
 						m_record.push_back(loc + 1);
-					// Next //FIXME
+					// Next Line
 					if (mnemoic != "START")
 						loc += 3;
 				}
@@ -216,16 +216,17 @@ void CompileOne(string input)
 // Compile to Objec Program
 void CompileTwo(int instruction_len)
 {
-	int inst_per_line = 7;
-	int total_lines = instruction_len / inst_per_line;
+	// loc, label, mnemoic, operand, opcode, addressing, source line
+	int per_line = 7;
+	int total_lines = instruction_len / per_line;
 	int t_len = 0;
 	int t_start = 0;
 	stringstream t_code;
-	for (size_t i = 0; i < instruction_len; i += inst_per_line)
+	for (size_t i = 0; i < instruction_len; i += per_line)
 	{
 		// Output Middle File
 		// cout << "\033[3;32m";
-		// for (size_t j = i; j < i + inst_per_line; j++)
+		// for (size_t j = i; j < i + per_line; j++)
 		// {
 		// 	// Operand
 		// 	if (j == i + 3)
@@ -269,7 +270,6 @@ void CompileTwo(int instruction_len)
 		int addr_code = 0;
 		if (addr_mode == "Index")
 			addr_code = symTable[operand] + 32768; // 8000(16)
-		// if (addr_mode == "Direct")
 		else // End
 			addr_code = symTable[operand];
 		// Handle Pseudo Operand: WORD / BYTE
@@ -297,7 +297,7 @@ void CompileTwo(int instruction_len)
 		if (line_number == 1) // H Record
 		{
 			int program_len =
-					stoi(instruction.at(instruction_len - inst_per_line), 0, 16) - loc;
+					stoi(instruction.at(instruction_len - per_line), 0, 16) - loc;
 			cout << "H" << spaces_s
 					 << left << setfill(' ') << setw(6) << symbol << spaces
 					 << right << setfill('0') << setw(6) << operand << spaces
@@ -309,9 +309,9 @@ void CompileTwo(int instruction_len)
 		// T Record Start
 		else if (line_number < total_lines - 1)
 		{
-			string next_mnemoic = instruction.at(i + inst_per_line + 2);
-			int next_loc = stoi(instruction.at(i + inst_per_line), 0, 16);
-			int next_next_loc = stoi(instruction.at(i + inst_per_line*2), 0, 16);
+			string next_mnemoic = instruction.at(i + per_line + 2);
+			int next_loc = stoi(instruction.at(i + per_line), 0, 16);
+			int next_next_loc = stoi(instruction.at(i + per_line*2), 0, 16);
 			t_len = next_loc - t_start;
 			// Append T Record
 			if (op_code != -1)
@@ -341,10 +341,10 @@ void CompileTwo(int instruction_len)
 				t_code.str("");
 			}
 		}
-		// Final Two Lines
+		// Secon Last Lines
 		else if (line_number == total_lines - 1)
 		{
-			int next_loc = stoi(instruction.at(i + inst_per_line), 0, 16);
+			int next_loc = stoi(instruction.at(i + per_line), 0, 16);
 			t_len = next_loc - t_start;
 			// Append T Record
 			if (op_code != -1)
@@ -365,7 +365,7 @@ void CompileTwo(int instruction_len)
 					 << t_code.str()
 					 << endl;
 		}
-		// Final Line
+		// Last Lines
 		else if (line_number == total_lines)
 		{
 			// Output M Record

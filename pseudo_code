@@ -21,187 +21,351 @@ compile(input, line_number) Do
 		{
 			If flag is 1 Do // perious has a Char
 				push tmp to instruction
-				tmp <- ""
-				flag <- 0
-			End If
+				Set tmp <- ""
+				Set flag <- 0
+			End
 			Break
 		}
 		// Ignore Witespace
-		Else If input[i] is " " or "\t" then
+		End Else If input[i] is " " or "\t" Do
 		{
 			If flag is 1 Do // perious has a Char
 				push tmp to instruction
-				tmp <- ""
-				flag <- 0
-			End If
+				Set tmp <- ""
+				Set flag <- 0
+			End
 			Continue
 		}
 		// Store Char
-		Else then
+		End Else Do
 		{
 			If flag is 0 Do // perious has no Char
-				count <- count + 1
-			end If
+				Set count <- count + 1
+			End
 
-			flag <- 1
-			tmp <- tmp + input[i]
+			Set flag <- 1
+			Set tmp <- tmp + input[i]
 		}
-		End If
+		End
 	End For
 
 	// Store Last Word
-	if flag is 1 Do
+	If flag is 1 Do
 		push tmp to instruction;
-	End If
+	End
 
 	// Statement
 	Set statement is a map <string, string>
-	Set label is a pointer point to statement["Label"]
-	Set mnemoic is a pointer point to statement["Mnemoic"]
-	Set operand is a pointer point to statement["Operand"]
-	Set addressing is a pointer point to statement["Addressing"]
+	Set label is a pointer of statement["Label"]
+	Set mnemoic is a pointer of statement["Mnemoic"]
+	Set operand is a pointer of statement["Operand"]
+	Set addressing is a pointer of statement["Addressing"]
 
 	If instruction size > 0 Do
 		// No label
 		If (first of instruction is not "END" or cannot find opcode) Do
 			Insert "***" to the head of instruction
-		End If
+		End
 		// Assign Label, Mnemoic, Operand
-		For i: 0 to instruction size Do
-			Switch(i) Do
-				case 0:
-					If instruction[i] is not "***"
-						Set label <- instruction[i]
-					break
-				case 1:
-					Set mnemoic <- instruction[i]
-					break
-				case 2:
-					Set operand <- instruction[i]
-					break
-				default:
-					break
-			End Switch
-		End For
-	End If
+		If instruction[i] is not "***" Do
+			Set label <- instruction[i]
+		End
+		Set mnemoic <- instruction[i]
+		If instruction size > 2 Do
+			Set operand <- instruction[i]
+		End
+	End
 
 	// Check Operand, Addressing mode
 	If instruction size > 5 Do
 		// BYTE C content has space char
 		If (mnemoic is "BYTE" and first character of operand is "C") Do
-			Set operand <- operand + instruction[3] // first ' 
-			// remaining content
+			Set operand <- operand + instruction[3] // C '  ABC   ' 
+			// Remaining content
 			operand append remaining content and whitespaces
 			Set addressing <- "Direct"
-		Else then
+		End Else Do
 			Throw error message
-		End If
-	Else If instruction size > 3
-		
-	End If
+		End
+
+	End Else If instruction size > 3 Do
+		// Index Addressing
+		If this line is index addressing Do
+			Set "Operand, X", "Operand ,X" -> "Operand,X"
+			Set addressing <- "Index"
+		// BYTE X 'ABC'
+		End Else If mnemoic is "BYTE" Do
+			operand append instruction[3] // X'ABC'
+			Set addressing <- "Direct"
+		// Too long
+		Else
+			Throw error message
+		End
+
+	End Else If instruction size > 2 and mnemoic is not "START", "END" Do
+		Set addressing <- "Direct"
+
+	End
+
+	Return statement
 End Compile
 
-CompileOne() Do
-	Set is_start <- false
-	Set input_line is a STRING
-	Set line_number <- 1
-	Set loc <- 0
-	Set symTable is a map
-	Set error_log is a map
-
-	While has input Do
-		Set input_line <- input
-		Print line_number: input_line
-		// START
-		If find "START" in input_line Do
-			Set is_start <- true
-		End If
-
-		// Compile and ignore empty line
-		If is_start and length of input_line > 1 Do
-			// [ Label, Mnemoic, Operand ]
-			Set statement <- Compile(input_line, line_number)
-			// Output Line NUmber and Loc
-			Print "line_number: " statement["line_number"]
-			Print "loc: " loc // hex number
-			// END Program
-			If statement["Label"] is "END" Do
-			{
-				Set is_start <- false
-				Print "End of program."
-				Break
-			}
-			// START from this line
-			Else If statement["Mnemoic"] is "START" then
-			{
+// Compile statement and ingnore empty line
+CompileOne(input) Do
+	Try Do
+		// [ Label, Mnemoic, Operand ]
+		Set statement <- Compile(input_line, line_number)
+		Set label <- statement["Label"];
+		Set mnemoic <- statement["Mnemoic"];
+		Set operand <- statement["Operand"];
+		Set addressing <- statement["Addressing"];
+		// START from this line
+		If mnemoic is "START" Do
+			Try Do
 				// Convert hex string to int, Set start position
-				Set loc <- statement["Operand"]
-				Print "Program name is " statement["Label"] .
-				Print "Start from " statement["Operand"] .
-			}
+				Set loc <- operand
+			End Catch(err) Do
+				Throw error message
+			End
+		End
+		// Output Label, Mnemoic, Operand
+		If label, mnemoic, operand not all empty Do
+			Output loc
+			Output label
+			Output mnemoic
+			Output operand
+			// opcode
+			If opcode of mnemoic is not -1 Do
+				Output opcode
+			End
+			// addressing
+			If has addressing Do
+				Output addressing
+			End
+			// line_number
+			Output line_number
+			// symTable
+			If label is already in symTable Do
+				Throw error message
+			End Else If label is not empty Do
+				Store label in symTable
+			End
+			// Check Mnemoic, Operand and set location counter
 			// RESB
-			Else If statement["Mnemoic"] is "RESB" then
-			{
-				Print "RESB is pesuDo instruction code."
-				Set data_name <- statement["Label"]
-				// Store data to Symbol Table If need
-				store_sym() // FIXME
-				Set byte <- statement["Operand"]
-				Set loc <- loc + byte
-			}
+			If mnemoic is "RESB" Do
+				Try Do
+					Set byte <- operand to integer
+					Set loc <- loc + byte
+				End Catch(err) Do
+					Throw error message
+				End
 			// RESW
-			Else If statement["Mnemoic"] is "RESW" then
-			{
-				Print "RESW is pesuDo instruction code."
-				// Store data to Symbol Table If need
-				store_sym() // FIXME
-				Set word <- statement["Operand"]
-				Set loc <- loc + word*3
-			}
-			// Other
-			Else then
-			{
-				// Output Addressing Mode
-				If statement["Addressing"] NOT empty then
-				{
-					Print "Addressing: " statement["Addressing"]
-				}
-				// Output Label, Mnemoic, Operand
-				If NOT
-					(statement["Label"] is empty and
-					statement["Mnemoic"] is empty and
-					statement["Operand"] is empty)
-				 Do
-				{
-					Print "Label: " statement["Label"]
-					Print "Mnemoic: " statement["Mnemoic"]
-					Print "Operand: " statement["Operand"]
-					// Store data to Symbol Table if need
-					store_sym() // FIXME
+			End Else If mnemoic is "RESW" Do
+				Try Do
+					Set word <- operand to integer
+					Set loc <- loc + word * 3
+				End catch(err) Do
+					Throw error message
+				End
+			// WORD
+			End Else IF mnemoic is "WORD" Do
+				Try Do
+					Set word <- operand to integer
+					Set loc <- loc + word * 3
+				End catch(err) Do
+					Throw error message
+				End
+			// BYTE
+			End Else IF mnemoic is "BYTE" Do
+				Set content_len <- length of operand - 3 // type and quotes
+
+				If first character of operand is not "C" and "X" Do
+					Throw error message
+				End Else If operand[1] and last of operand is not "'" Do
+					Throw error message
+				End Else If content_len <= 0 Do
+					Throw error message
+				End Else Do
+					Switch(key) Do
+						Case "C":
+							Set loc <- loc += content_len
+							Break
+
+						Case "X":
+							If content_len % 2 is not 0 Do
+								Throw error message
+							End Else Do
+								Try Do
+									Convert content to heximal integer
+								End catch(err) Do
+									Throw error message
+								End
+
+								Set loc <- loc + content_len / 2
+							End
+							Break
+						
+						Default:
+							Break
+					End
+				End
+			// RSUB
+			End Else If mnemoic is "RSUB" Do
+				If operand is not empty Do
+					Throw error message
+				End Else Do
 					Set loc <- loc + 3
-				}
-				End If
-			}
-			end If
-		End If
+				End
+			End Else Do
+				// Invalid Mnemoic
+				If opcode(mnemoic) is -1 and mnemoic is not "START", "WORD", "END" Do
+					Throw error message
+				End Else Do
+					// Invalid Operand
+					If operand is empty Do
+						Throw error message
+					End Else If index addressing error Do
+						Throw error message
+					End
+					// M Record
+					If mnemoic is not "START", "WORD", "END" Do
+						push loc + 1 to m_record
+					End
+					// Next Line
+					If (mnemoic is not "START") Do
+						Set loc <- loc + 3
+					End
+				End
+			End
 
-		Set line_number <- line_number + 1
-	End While
-
-
-
-	// Output Error Log
-	Print "Error log:"
-	Set iter_e <- begin of error_log
-	While iter_e NOT the _end of error_log Do
-		Print data_name of error_log[iter_e]
-		Print loc of error_log[iter_e]
-		iter_e <- iter_e + 1
-	End While
-
-	Return
-
+			If label is not empty and label is same with mnemoic Do
+				Throw error message
+			End
+			If label is not empty and label is same with operand Do
+				Throw error message
+			End
+			If opcode(operand) is not -1 Do
+				Throw error message
+			End
+		End
+	End Catch(err) Do
+		Set has_error <- True
+		Output error message
+	End
 End CompileOne
+
+CompileTwo(instruction_len) Do
+	// loc, label, mnemoic, operand, opcode, addressing, source line
+	Set per_line <- 7
+	Set total_lines <- instruction_len / per_line
+	Set t_len <- 0
+	Set t_start <- 0
+	Set t_code
+
+	// Start Compiling
+	For i = 0; i < instruction_len; i += per_line Do
+		Set loc <- instruction[i] // Heximal integer
+		Set symbol <- instruction.[i + 1];
+		Set mnemoic <- instruction.[i + 2];
+		Set operand <- instruction.[i + 3] // Delete whitespaces
+		Set op_code <- instruction.[i + 4] // Heximal integer or -1
+		Set addr_mode <- instruction.[i + 5];
+		Set source_line <- instruction.[i + 6]; 
+		// Check Symbol
+		If mnemoic is not "START", "WORD", "BYTE", "RESB", "RESW", "RSUB"
+		and not in symTable Do
+			Output errpr message
+			Return
+		End
+		// Handle Addressing
+		Set addr_code <- 0;
+		If (addr_mode is "Index") Do
+			Set addr_code <- symTable[operand] + 32768; // 8000(16)
+		End else Do // Direct, End
+			Set addr_code <- symTable[operand];
+		End
+		// Handle Pseudo Operand: WORD / BYTE
+		Set operand_int <- 0
+		Set operand_str <- ""
+		If mnemoic is "WORD" Do
+			operand_int <- operand to deximal integer
+		End Else If mnemoic is "BYTE" Do
+			Switch(first character of operand) Do
+				Case "X":
+					Set operand_str <- operand exclude "X' '"
+					Break
+
+				Case "C":
+					Set characters <- operand exclude "X' '"
+					Set _characters
+					For i: 0 to characters length Do
+						Convert characters[i] to heximal integer
+						Append to _characters
+					End
+					Set operand_str <- _characters
+					Break
+			End
+			// Output Object Program
+			If line_number is 1 Do
+				Set program_len <- last loc - current loc
+				Output "H", symbol, operand, program_len
+				Set t_start <- current loc
+				Set t_len <- 0
+			// T Record Start
+			End Else If line_number < total_lines - 1 Do
+				Set next_mnemoic <- instruction[ i + per_line + 2 ];
+				Set next_loc <- instruction[ i + per_line ];
+				Set next_next_loc <- instruction[ i + per_line * 2 ];
+				Set t_len <- next_loc - t_start;
+				// Append T Record
+				If op_code is not -1 Do
+					Append op_code, addr_code to t_code
+				End Else If mnemoic is "WORD" Do
+					Append operand_int to t_code
+				End Else If mnemoic is "BYTE" Do
+					Append operand_str to t_code
+				End
+				// T Record End
+				If next_next_loc - t_start > "0x1e"
+				or next_mnemoic is "RESW", "RESB" Do
+					// Output T Record
+					If mnemoic is not "RESW", "RESB" Do
+						Output "T", t_start, t_len, t_code
+					End
+					// Initial Next T Record
+					Set t_start <- next_loc
+					Set t_code <- ""
+				End
+			End
+		// Secon Last Lines
+		End Else If line_number is total_lines -1 Do
+			Set next_loc <- instruction[ i + per_line ];
+			Set t_len <- next_loc - t_start;
+			// Append T Record
+			If op_code is not -1 Do
+				Append op_code, addr_code to t_code
+			End Else If mnemoic is "WORD" Do
+				Append operand_int to t_code
+			End Else If mnemoic is "BYTE" Do
+				Append operand_str to t_code
+			End
+			// Output T Record
+			If mnemoic is not "RESW", "RESB" Do
+				Output "T", t_start, t_len, t_code
+			End
+		// Last Lines
+		End Else If line_number is total_lines Do
+			// Output M Record
+			Foreach loc in m_record Do
+				Output "M", loc, 04
+			End
+			// E Record
+			Output "E", addr_code
+		End
+		
+		Set line_number <- line_number + 1
+	End For
+End CompileTwo
 
 PassOne() Do
 	Open middle_file
@@ -213,7 +377,7 @@ PassOne() Do
 
 		If (length of line  > 1) Do
 			CompileOne(line)
-		End If
+		End
 
 		Set line_number <- line_number + 1
 	End While
@@ -223,9 +387,9 @@ End PassOne
 
 PassTwo() Do
 	open middle_file
-	string input
-	int instruction_len;
-	line_number <- 1;
+	Set input is a string
+	Set instruction_len is a integer;
+	Set line_number <- 1;
 
 	Read Middle File, split with '\t'
 
@@ -233,12 +397,12 @@ PassTwo() Do
 	CompileTwo(instruction_len)
 
 	If (instruction[2] is not "START") Do
-		Print err_message: "Not starting at START."
-		End If
+		Print error message: "Not starting at START."
+		End
 		
 		If (instruction[instruction_len - 4] is not "START") Do
-		Print err_message: "Not ending at END."
-	End If
+		Print error message: "Not ending at END."
+	End
 End PassTwo
 
 Main() Do
@@ -250,14 +414,12 @@ Main() Do
 	If has_error Do
 		Output middle_file
 		Return 1
-	End If
+	End
 
 	PassTwo()
 	If has_error Do
 		Return 1
-	End If
+	End
 
 	Return 0
 End Main
-
-// Middle File: source code line number
