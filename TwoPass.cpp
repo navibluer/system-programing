@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <string>
 #include <sstream>
+#include <vector>
 #include <map>
 #include "compile.h"
 using namespace std;
@@ -20,6 +21,20 @@ vector<string> obj_program;
 string spaces = "\t";
 string spaces_s = "  ";
 
+// Convert All Char in String
+// Original stoi: 5g5 => 5
+int better_stoi(string number, int type)
+{
+	size_t fail_pos = 0;
+	int result;
+	while (fail_pos != number.length())
+	{
+		// fail_pos will be set to fail position
+		result = stoi(number.substr(fail_pos), &fail_pos, type);
+	}
+	return result;
+}
+
 // Compile statement and ingnore empty line
 void CompileOne(string input)
 {
@@ -36,7 +51,7 @@ void CompileOne(string input)
 			try
 			{
 				// hex string to int, set start loc
-				loc = stoi(operand, 0, 16);
+				loc = better_stoi(operand, 16);
 			}
 			catch (invalid_argument &e)
 			{
@@ -75,7 +90,8 @@ void CompileOne(string input)
 			{
 				try
 				{
-					int byte = stoi(operand);
+					int byte = better_stoi(operand, 10);
+					// int byte = all_to_dec(operand);
 					loc += byte;
 				}
 				catch (invalid_argument &e)
@@ -88,7 +104,7 @@ void CompileOne(string input)
 			{
 				try
 				{
-					int word = stoi(operand);
+					int word = better_stoi(operand, 10);
 					loc += word * 3;
 				}
 				catch (invalid_argument &e)
@@ -101,7 +117,7 @@ void CompileOne(string input)
 			{
 				try
 				{
-					int word = stoi(operand);
+					int word = better_stoi(operand, 10);
 					loc += 3;
 				}
 				catch (invalid_argument &e)
@@ -137,10 +153,8 @@ void CompileOne(string input)
 						else
 						{
 							try
-							{
-								stoi( //  X' '\n
-										operand.substr(2, operand.length() - 3),
-										0, 16);
+							{ //  X' '\n
+								better_stoi(operand.substr(2, operand.length() - 3), 16);
 							}
 							catch (invalid_argument &e)
 							{

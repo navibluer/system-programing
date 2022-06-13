@@ -1,5 +1,4 @@
 #include <string>
-#include <map>
 using namespace std;
 
 int opcode(string mnemonic)

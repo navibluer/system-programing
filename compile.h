@@ -1,10 +1,5 @@
-#include <iostream>
-#include <string>
-#include <vector>
-#include <map>
 #include "opTable.h"
 #include "errTable.h"
-using namespace std;
 
 map<string, string> compile(string input)
 {
@@ -73,21 +68,7 @@ map<string, string> compile(string input)
 	}
 	// Check Operand, Addressing mode
 	if (instruction.size() > 5)
-	{
-		// BYTE C content has space char
-		if (*mnemoic == "BYTE" && statement["Operand"].front() == 'C')
-		{
-			*operand += instruction[3]; // C '  XXX   ' 
-			// Remaining content
-			for (size_t i = 4; i < instruction.size(); i++)
-			{
-				*operand += " " + instruction.at(i);
-			}
-			*addressing = "Direct";
-		}
-		else // Too Long
-			throw err_message("invalid_syntax");
-	}
+		throw err_message("invalid_syntax");
 	else if (instruction.size() > 3)
 	{
 		if (instruction[3] == "X") // Operand, X
@@ -104,13 +85,15 @@ map<string, string> compile(string input)
 		{
 			*addressing = "Index";
 			*operand += ",";
-			if (instruction.size() >= 5)
+			if (instruction.size() == 5)
 				*operand += instruction.at(4);
 		}
 		else if (*mnemoic == "BYTE")
 		{
 			*operand += instruction[3]; // BYTE X '?'
 			*addressing = "Direct";
+			if (instruction.size() == 5)
+				throw err_message("invalid_syntax");
 		}
 		else // Too Long
 			throw err_message("invalid_syntax");

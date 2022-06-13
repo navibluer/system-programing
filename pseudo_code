@@ -8,6 +8,19 @@ Set instruction is a string vector;
 Set m_record is a int vector;
 Set obj_program is a string vector;
 
+// Convert All Char in String
+// Original stoi: 5g5 => 5
+better_stoi(number, type) Do
+	Set fail_pos <- 0 // fail position
+	Set result
+	While fail_pos not equal to length of number Do
+		// result = stoi(number.substr(fail_pos), &fail_pos, type);
+		Get substring of number from fail_pos
+		string_to_int(substring of number, type) and Set fail_pos
+	End
+	Return result
+End better_stoi
+
 // Split and Handle Addressing Mode
 compile(input, line_number) Do
 	Set flag <- 0 // Meet Char?
@@ -78,16 +91,7 @@ compile(input, line_number) Do
 
 	// Check Operand, Addressing mode
 	If instruction size > 5 Do
-		// BYTE C content has space char
-		If (mnemoic is "BYTE" and first character of operand is "C") Do
-			Set operand <- operand + instruction[3] // C '  ABC   ' 
-			// Remaining content
-			operand append remaining content and whitespaces
-			Set addressing <- "Direct"
-		End Else Do
-			Throw error message
-		End
-
+		Throw error message
 	End Else If instruction size > 3 Do
 		// Index Addressing
 		If this line is index addressing Do
@@ -97,6 +101,8 @@ compile(input, line_number) Do
 		End Else If mnemoic is "BYTE" Do
 			operand append instruction[3] // X'ABC'
 			Set addressing <- "Direct"
+			If (instruction size is 5)
+				Throw error message
 		// Too long
 		Else
 			Throw error message
@@ -362,7 +368,7 @@ CompileTwo(instruction_len) Do
 			// E Record
 			Output "E", addr_code
 		End
-		
+
 		Set line_number <- line_number + 1
 	End For
 End CompileTwo

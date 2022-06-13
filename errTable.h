@@ -1,7 +1,3 @@
-#include <string>
-#include <map>
-using namespace std;
-
 string err_message(string err_type)
 {
 	map<string, string> errTable;
