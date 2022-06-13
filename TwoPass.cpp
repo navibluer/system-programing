@@ -467,16 +467,16 @@ int main(int argc, char *argv[])
 	// Pass One
 	PassOne();
 	// Output Symble Table
-	cout << "\033[0;36m"
-			 << "\nSymbol Table:"
-			 << "\n\n";
-	for (auto iter = symTable.begin(); iter != symTable.end(); iter++)
-	{
-		cout << "[\t" << iter->first
-				 << "\t->\t" << hex << iter->second
-				 << "\t]\n";
-	}
-	cout << "\033[0m\n";
+	// cout << "\033[0;36m"
+	// 		 << "\nSymbol Table:"
+	// 		 << "\n\n";
+	// for (auto iter = symTable.begin(); iter != symTable.end(); iter++)
+	// {
+	// 	cout << "[\t" << iter->first
+	// 			 << "\t->\t" << hex << iter->second
+	// 			 << "\t]\n";
+	// }
+	// cout << "\033[0m\n";
 	ifstream middle_file("middle.txt");
 	// Pass One Has Error, Output Middle File, Error, and Exit
 	if (has_error)
@@ -484,7 +484,6 @@ int main(int argc, char *argv[])
 		cout << middle_file.rdbuf();
 		exit(1);
 	}
-	// cout << middle_file.rdbuf();
 	// Pass Two
 	PassTwo();
 	if (has_error)
