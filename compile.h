@@ -57,7 +57,17 @@ map<string, string> compile(string input)
 	{
 		string *front = &instruction.front();
 		// No label
-		if (opcode(*front) != -1 || *front == "END")
+		if ((instruction.size() <= 2 &&
+				 (opcode(*front) != -1 || *front == "END")))
+		{
+			instruction.insert(instruction.begin(), "***");
+		}
+		else if (instruction.size() == 3 &&
+						 instruction[2].find(',') != string::npos || 
+						 instruction[1].find(',') != string::npos)
+			instruction.insert(instruction.begin(), "***");
+		else if (instruction.size() == 4 &&
+						 instruction[2].find(',') != string::npos)
 			instruction.insert(instruction.begin(), "***");
 		// Assign Label, Mnemoic, Operand
 		if (instruction.at(0) != "***")
@@ -81,10 +91,10 @@ map<string, string> compile(string input)
 			*addressing = "Index";
 			*operand += ",X";
 		}
-		else if (instruction[3] == ",") // Operand , ?
+		else if (instruction[3].find(',') != string::npos) // Operand , ?
 		{
 			*addressing = "Index";
-			*operand += ",";
+			*operand += instruction[3];
 			if (instruction.size() == 5)
 				*operand += instruction.at(4);
 		}

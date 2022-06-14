@@ -13,33 +13,34 @@
 1021		JSUB	WRREC    	48	Direct	19
 1024		LDL	RETADR   	8	Direct	20
 1027		RSUB	         	4c		21
-102a	EOF	BYTE	C'EOF'   		Direct	22
-102d	THREE	WORD	3        		Direct	23
-1030	ZERO	WORD	0        		Direct	24
-1033	RETADR	RESW	1        		Direct	25
-1036	LENGTH	RESW	1        		Direct	26
-1039	BUFFER	RESB	4096     		Direct	27
-2039	RDREC	LDX	ZERO     	4	Direct	31
-203c		LDA	ZERO     	0	Direct	32
-203f	RLOOP	TD	INPUT    	e0	Direct	33
-2042		JEQ	RLOOP    	30	Direct	34
-2045		RD	INPUT    	d8	Direct	35
-2048		COMP	ZERO     	28	Direct	36
-204b		JEQ	EXIT     	30	Direct	37
-204e		STCH	BUFFER,X 	54	Index	38
-2051		TIX	MAXLEN   	2c	Direct	39
-2054		JLT	RLOOP    	38	Direct	40
-2057	EXIT	STX	LENGTH   	10	Direct	41
-205a		RSUB	         	4c		42
-205d	INPUT	BYTE	X'F1'    		Direct	43
-205e	MAXLEN	WORD	4096     		Direct	44
-2061	WRREC	LDX	ZERO     	4	Direct	49
-2064	WLOOP	TD	OUTPUT   	e0	Direct	50
-2067		JEQ	WLOOP    	30	Direct	51
-206a		LDCH	BUFFER,X 	50	Index	52
-206d		WD	OUTPUT   	dc	Direct	53
-2070		TIX	LENGTH   	2c	Direct	54
-2073		JLT	WLOOP    	38	Direct	55
-2076	TEST	RSUB	         	4c		56
-2079	OUTPUT	BYTE	X'05'    		Direct	57
-207a		END	FIRST    			58
+102a	EOF	BYTE	C'AKSJDKLAJDLKAJDKLAJDKALJDLKADGA'		Direct	22
+1049	LDX	LDA	EOF      	0	Direct	23
+104c	THREE	WORD	3        		Direct	24
+104f	ZERO	WORD	0        		Direct	25
+1052	RETADR	RESW	1        		Direct	26
+1055	LENGTH	RESW	1        		Direct	27
+1058	BUFFER	RESB	4096     		Direct	28
+2058	RDREC	LDX	ZERO     	4	Direct	32
+205b		LDA	ZERO     	0	Direct	33
+205e	RLOOP	TD	INPUT    	e0	Direct	34
+2061		JEQ	RLOOP    	30	Direct	35
+2064		RD	INPUT    	d8	Direct	36
+2067		COMP	ZERO     	28	Direct	37
+206a		JEQ	EXIT     	30	Direct	38
+206d		STCH	BUFFER,X 	54	Index	39
+2070		TIX	MAXLEN   	2c	Direct	40
+2073		JLT	RLOOP    	38	Direct	41
+2076	EXIT	STX	LENGTH   	10	Direct	42
+2079		RSUB	         	4c		43
+207c	INPUT	BYTE	X'F1'    		Direct	44
+207d	MAXLEN	WORD	4096     		Direct	45
+2080	WRREC	LDX	ZERO     	4	Direct	50
+2083	WLOOP	TD	OUTPUT   	e0	Direct	51
+2086		JEQ	WLOOP    	30	Direct	52
+2089		LDCH	BUFFER,X 	50	Index	53
+208c		WD	OUTPUT   	dc	Direct	54
+208f		TIX	LENGTH   	2c	Direct	55
+2092		JLT	WLOOP    	38	Direct	56
+2095	TEST	RSUB	         	4c		57
+2098	OUTPUT	BYTE	X'05'    		Direct	58
+2099		END	FIRST    			59

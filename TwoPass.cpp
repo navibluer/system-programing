@@ -235,6 +235,13 @@ void CompileTwo(int instruction_len)
 	int total_lines = instruction_len / per_line;
 	int t_len = 0;
 	int t_start = 0;
+	// For length of BYTE C > 30
+	bool t_break = false;
+	int break_t_len;
+	int break_t_start;
+	stringstream break_t_code;
+	stringstream break_tmp;
+	string break_operand_str = "";
 	stringstream t_code;
 	for (size_t i = 0; i < instruction_len; i += per_line)
 	{
@@ -284,7 +291,7 @@ void CompileTwo(int instruction_len)
 		int addr_code = 0;
 		if (addr_mode == "Index")
 			addr_code = symTable[operand] + 32768; // 8000(16)
-		else // End
+		else																		 // End
 			addr_code = symTable[operand];
 		// Handle Pseudo Operand: WORD / BYTE
 		int operand_int = 0;
@@ -300,10 +307,27 @@ void CompileTwo(int instruction_len)
 				break;
 			case 'C': // C' '\n
 				string characters = operand.substr(2, operand.length() - 3);
-				stringstream _characters;
-				for (size_t i = 0; i < characters.length(); i++)
-					_characters << hex << (int)characters[i];
-				operand_str = _characters.str();
+				int charaters_len = characters.length();
+				stringstream tmp;
+				if (charaters_len > 0x1e)
+				{
+					for (size_t i = 0; i < 30; i++)
+						tmp << hex << (int)characters[i];
+					operand_str = tmp.str();
+
+					t_break = true;
+					break_t_len = charaters_len - 30;
+					break_t_start = t_start + 30;
+					for (size_t i = 30; i < charaters_len; i++)
+						break_tmp << hex << (int)characters[i];
+					break_operand_str = break_tmp.str();
+				}
+				else
+				{
+					for (size_t i = 0; i < charaters_len; i++)
+						tmp << hex << (int)characters[i];
+					operand_str = tmp.str();
+				}
 				break;
 			}
 		}
@@ -326,7 +350,7 @@ void CompileTwo(int instruction_len)
 		{
 			string next_mnemoic = instruction.at(i + per_line + 2);
 			int next_loc = stoi(instruction.at(i + per_line), 0, 16);
-			int next_next_loc = stoi(instruction.at(i + per_line*2), 0, 16);
+			int next_next_loc = stoi(instruction.at(i + per_line * 2), 0, 16);
 			t_len = next_loc - t_start;
 			// Append T Record
 			if (op_code != -1)
@@ -337,10 +361,19 @@ void CompileTwo(int instruction_len)
 				t_code << right << setfill('0') << setw(6)
 							 << operand_int << spaces;
 			else if (mnemoic == "BYTE")
+			{
 				t_code << operand_str << spaces;
+				// t_len = 30;
+			}
+			// T break
+			if (t_break)
+			{
+				break_t_code << break_operand_str << spaces;
+			}
 			// T Record End
 			if (next_next_loc - t_start > 0x1e ||
-					next_mnemoic == "RESW" || next_mnemoic == "RESB")
+					next_mnemoic == "RESW" ||
+					next_mnemoic == "RESB")
 			{
 				// Output T Record
 				if (mnemoic != "RESW" && mnemoic != "RESB")
@@ -354,6 +387,18 @@ void CompileTwo(int instruction_len)
 				// Initial Next T Record
 				t_start = next_loc;
 				t_code.str("");
+			}
+			// BYTE C length > 30
+			if (t_break == true)
+			{
+				cout << "T" << spaces_s
+						 << right << setfill('0') << setw(6)
+						 << hex << break_t_start << spaces_s
+						 << right << setfill('0') << setw(2)
+						 << break_t_len << spaces
+						 << break_t_code.str()
+						 << endl;
+				t_break = false;
 			}
 		}
 		// Secon Last Lines
@@ -469,16 +514,16 @@ int main(int argc, char *argv[])
 	// Pass One
 	PassOne();
 	// Output Symble Table
-	// cout << "\033[0;36m"
-	// 		 << "\nSymbol Table:"
-	// 		 << "\n\n";
-	// for (auto iter = symTable.begin(); iter != symTable.end(); iter++)
-	// {
-	// 	cout << "[\t" << iter->first
-	// 			 << "\t->\t" << hex << iter->second
-	// 			 << "\t]\n";
-	// }
-	// cout << "\033[0m\n";
+	cout << "\033[0;35m"
+			 << "\nSymbol Table:"
+			 << "\n\n";
+	for (auto iter = symTable.begin(); iter != symTable.end(); iter++)
+	{
+		cout << "[\t" << iter->first
+				 << "\t->\t" << hex << iter->second
+				 << "\t]\n";
+	}
+	cout << "\033[0m\n";
 	ifstream middle_file("middle.txt");
 	// Pass One Has Error, Output Middle File, Error, and Exit
 	if (has_error)

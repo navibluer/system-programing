@@ -19,7 +19,8 @@ STA LENGTH
 JSUB WRREC
 LDL RETADR
 	RSUB
-EOF BYTE C'EOF'
+EOF BYTE C'aksjdklajdlkajdklajdkaljdlkadga'
+ldx lda eof
 THREE WORD 3
 ZERO WORD 0
 RETADR RESW 1

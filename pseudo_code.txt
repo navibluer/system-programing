@@ -94,7 +94,7 @@ compile(input, line_number) Do
 		Throw error message
 	End Else If instruction size > 3 Do
 		// Index Addressing
-		If this line is index addressing Do
+		If has "," or "X" Do
 			Set "Operand, X", "Operand ,X" -> "Operand,X"
 			Set addressing <- "Index"
 		// BYTE X 'ABC'
@@ -120,7 +120,7 @@ End Compile
 CompileOne(input) Do
 	Try Do
 		// [ Label, Mnemoic, Operand ]
-		Set statement <- Compile(input_line, line_number)
+		Set statement <- compile(input_line, line_number)
 		Set label <- statement["Label"];
 		Set mnemoic <- statement["Mnemoic"];
 		Set operand <- statement["Operand"];
@@ -189,7 +189,7 @@ CompileOne(input) Do
 					Throw error message
 				End Else If operand[1] and last of operand is not "'" Do
 					Throw error message
-				End Else If content_len <= 0 Do
+				End Else If content_len is 0 Do
 					Throw error message
 				End Else Do
 					Switch(key) Do
@@ -198,7 +198,7 @@ CompileOne(input) Do
 							Break
 
 						Case "X":
-							If content_len % 2 is not 0 Do
+							If content_len is not even Do
 								Throw error message
 							End Else Do
 								Try Do
@@ -302,7 +302,7 @@ CompileTwo(instruction_len) Do
 					Break
 
 				Case "C":
-					Set characters <- operand exclude "X' '"
+					Set characters <- operand exclude "C' '"
 					Set _characters
 					For i: 0 to characters length Do
 						Convert characters[i] to heximal integer
@@ -406,7 +406,7 @@ PassTwo() Do
 		Print error message: "Not starting at START."
 		End
 		
-		If (instruction[instruction_len - 4] is not "START") Do
+		If (instruction[instruction_len - 4] is not "END") Do
 		Print error message: "Not ending at END."
 	End
 End PassTwo
