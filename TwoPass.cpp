@@ -312,6 +312,7 @@ void CompileTwo(int instruction_len)
 		{
 			int program_len =
 					stoi(instruction.at(instruction_len - per_line), 0, 16) - loc;
+			cout << "\033[4;36m" << endl;
 			cout << "H" << spaces_s
 					 << left << setfill(' ') << setw(6) << symbol << spaces
 					 << right << setfill('0') << setw(6) << operand << spaces
@@ -394,6 +395,7 @@ void CompileTwo(int instruction_len)
 					 << right << setfill('0') << setw(6)
 					 << hex << addr_code
 					 << endl;
+			cout << "\033[0m\n";
 		}
 		line_number++;
 	}

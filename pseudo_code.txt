@@ -194,7 +194,7 @@ CompileOne(input) Do
 				End Else Do
 					Switch(key) Do
 						Case "C":
-							Set loc <- loc += content_len
+							Set loc <- loc + content_len
 							Break
 
 						Case "X":
