@@ -19,7 +19,7 @@ string err_message(string err_type)
 	// mnemoic
 	errTable["mnemoic_invalid"] = "Invalid mnemoic. -> ";
 	// label
-	errTable["lable_mnemoic"] = "Symbol cannot be same with mnemoic. -> ";
+	errTable["lable_opcode"] = "Cannot use mnemoic to be label. -> ";
 	errTable["lable_operand"] = "Symbol cannot be same with operand. -> ";
 	// pseudo
 	errTable["START"] = "Program do not start from 'START'.";
